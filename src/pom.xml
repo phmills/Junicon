@@ -1,0 +1,457 @@
+<?xml version="1.0"?>
+
+<!-- =====================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+====================================================================== -->
+	
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+		      http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- ================================================ -->
+  <!--            Project identity                      -->
+  <!-- ================================================ -->
+  <groupId>edu.uidaho.junicon</groupId>
+  <artifactId>master</artifactId>
+  <version>1.8.4</version>
+  <packaging>pom</packaging>
+
+  <name>Junicon</name>
+  <description>
+	Junicon is a Java-based interpreter for the Unicon programming language,
+	implemented using program transformation.
+  </description>
+
+  <!-- ================================================ -->
+  <!--            Modules			        -->
+  <!-- ================================================ -->
+  <modules>
+    <module>source</module>
+    <module>test</module>
+    <module>documentation</module>
+    <module>distribution</module>
+  </modules>
+
+  <!-- ================================================ -->
+  <!--            Properties                            -->
+  <!-- ================================================ -->
+  <properties>
+	<!-- ================================================ -->
+	<!--            Project information                   -->
+	<!-- ================================================ -->
+	<owner>Orielle, LLC</owner>
+	<ownerUrl>http://www.orielle.com</ownerUrl>
+	<!--
+	<owner>${project.organization.name}</owner>
+	-->
+	<!-- thisYear is set in pre-site phase below -->
+	<copyrightYear>${thisYear}</copyrightYear>
+
+	<!-- ================================================ -->
+	<!--            Parameters                            -->
+	<!-- ================================================ -->
+	<assembly.artifactId>junicon</assembly.artifactId>
+	<assembly.finalName>${assembly.artifactId}-${project.version}</assembly.finalName>
+	<doc.project.name>Junicon</doc.project.name>
+	<jar.finalName>${assembly.artifactId}</jar.finalName>
+	<jar.mainClass>${project.groupId}.interpreter.interpreter.CommandShell</jar.mainClass>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+	<!-- ================================================ -->
+	<!--            Versions                              -->
+	<!-- ================================================ -->
+	<!-- jdk version 1.8 for lambda expressions and method references -->
+	<jdk.version>8.0</jdk.version>
+	<jdk.source.version>1.8</jdk.source.version>
+	<spring.version>4.1.3.RELEASE</spring.version>
+      	<junit.version>3.8.1</junit.version>
+	<groovy.version>2.3.9</groovy.version>
+	<asm.version>5.0.1</asm.version>
+	<jline.version>2.11</jline.version>
+	<jansi.version>1.6</jansi.version>
+        <javacc.plugin.version>2.6</javacc.plugin.version>
+	<javacc.version>6.1.2</javacc.version>
+	<log4j.version>1.2.16</log4j.version>
+	<commons-logging.version>1.1.1</commons-logging.version>
+	<xalan.version>2.7.1</xalan.version>
+	<jmh.version>1.4.1</jmh.version>
+	<ant.version>1.8</ant.version>
+
+        <maven.compiler.plugin.version>3.2</maven.compiler.plugin.version>
+	<maven.jar.plugin.version>2.5</maven.jar.plugin.version>
+	<maven.shade.plugin.version>2.3</maven.shade.plugin.version>
+        <maven.assembly.plugin.version>2.5.3</maven.assembly.plugin.version>
+	<maven.site.plugin.version>3.4</maven.site.plugin.version>
+        <maven.javadoc.plugin.version>2.10.1</maven.javadoc.plugin.version>
+        <maven.project.info.reports.plugin.version>2.7</maven.project.info.reports.plugin.version>
+	<maven.changes.plugin.version>2.11</maven.changes.plugin.version>
+	<maven.changelog.plugin.version>2.3</maven.changelog.plugin.version>
+	<doxia.site.renderer.version>1.6</doxia.site.renderer.version>
+	<maven.buildnumber.version>1.0</maven.buildnumber.version>
+  </properties>
+
+  <!-- ================================================ -->
+  <!--            Project information                   -->
+  <!-- ================================================ -->
+  <url>http://www.junicon.org</url>
+  <inceptionYear>2011</inceptionYear>
+  <organization>
+	<name>University of Idaho</name>
+	<url>http://www.cs.uidaho.edu</url>
+  </organization>
+
+  <developers>
+    <developer>
+	<id>phmills</id>
+	<name>Peter Mills</name>
+	<url>http://www.orielle.com/html/management.htm</url>
+	<organization>Orielle.com</organization>
+	<organizationUrl>http://www.orielle.com</organizationUrl>
+	<roles>
+            <role>Project Manager</role>
+            <role>Architect</role>
+	</roles>
+	<timezone>-8</timezone>
+	<properties></properties>
+    </developer>         
+  </developers>
+
+  <contributors>
+    <contributor>
+	<name>Clint Jeffery</name>
+	<url>http://www.cs.uidaho.edu/~jeffery</url>
+	<organization>University of Idaho</organization>
+	<organizationUrl>http://www.cs.uidaho.edu</organizationUrl>
+	<roles>
+ 		<role>Advisor</role>
+	</roles>
+	<timezone>-8</timezone>
+	<properties></properties>
+    </contributor>
+  </contributors>
+
+  <licenses>
+    <license>
+	<name>FreeBSD License</name>
+	<url>http://www.opensource.org/licenses/bsd-license.php</url>
+	<distribution>repo</distribution>
+	<comments>A business-friendly OSS license.</comments>
+    </license>
+  </licenses>
+
+  <!-- ================================================ -->
+  <!--            Dependencies                          -->
+  <!-- ================================================ -->
+  <!-- DependencyManagement: inactive prototypes that are inherited -->
+  <dependencyManagement>
+  <dependencies>
+    <!-- =================================== -->
+    <!--	Other compile dependencies   -->
+    <!-- =================================== -->
+    <dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-beans</artifactId>
+	<version>${spring.version}</version>
+    </dependency>
+    <dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-context</artifactId>
+	<version>${spring.version}</version>
+    </dependency>
+    <dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-core</artifactId>
+	<version>${spring.version}</version>
+    </dependency>
+    <dependency>
+	<groupId>org.codehaus.groovy</groupId>
+	<artifactId>groovy-all</artifactId>
+	<version>${groovy.version}</version>
+    </dependency>
+    <!--
+    <dependency>
+	<groupId>net.java.dev.javacc</groupId>
+	<artifactId>javacc</artifactId>
+	<version>${javacc.version}</version>
+    </dependency>
+    -->
+    <!-- =================================== -->
+    <!--	Other runtime dependencies   -->
+    <!-- =================================== -->
+  </dependencies>
+  </dependencyManagement>
+
+  <!-- ================================================ -->
+  <!--            Build					-->
+  <!-- ================================================ -->
+  <build>
+    <plugins>
+      <!-- ================================================ -->
+      <!--      Get current year                            -->
+      <!-- ================================================ -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>${maven.buildnumber.version}</version>
+	<configuration> 
+		<timestampFormat>yyyy</timestampFormat> 
+		<timestampPropertyName>thisYear</timestampPropertyName>
+	</configuration> 
+	<executions> 
+	    <execution> 
+		<!-- OR: validate phase -->
+		<phase>pre-site</phase> 
+		<goals> 
+		    <goal>create-timestamp</goal> 
+ 		</goals> 
+	    </execution> 
+	</executions> 
+      </plugin>
+      <!--
+	<maven.build.timestamp.format>yyMMdd_HHmm</maven.build.timestamp.format>
+	<buildNumber>${maven.build.timestamp}</buildNumber> 
+      -->
+
+      <!-- ================================================ -->
+      <!--            Site				    -->
+      <!-- ================================================ -->
+      <!-- Turn off reporting in modules by default -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${maven.site.plugin.version}</version>
+        <configuration>
+          <locales>en</locales>
+	  <skip>true</skip>
+	  <skipDeploy>true</skipDeploy>
+	  <generateProjectInfo>false</generateProjectInfo>
+	  <generateReports>false</generateReports>
+	  <!-- <templateFile>src/site/my_site.vm</templateFile> -->
+        </configuration>
+        <dependencies>
+	  <dependency>
+		<groupId>org.apache.maven.doxia</groupId>
+		<artifactId>doxia-site-renderer</artifactId>
+		<version>${doxia.site.renderer.version}</version>
+	  </dependency>
+	  <dependency>
+		<groupId>org.apache.maven.doxia</groupId>
+		<artifactId>doxia-decoration-model</artifactId>
+		<version>${doxia.site.renderer.version}</version>
+	  </dependency>
+	  <dependency>
+		<groupId>org.apache.maven.doxia</groupId>
+		<artifactId>doxia-core</artifactId>
+		<version>${doxia.site.renderer.version}</version>
+	  </dependency>
+	</dependencies>
+      </plugin>
+    </plugins>
+
+    <!-- ================================================ -->
+    <!--            PluginManagement			  -->
+    <!-- ================================================ -->
+    <!-- PluginManagement: inactive prototypes that are inherited -->
+    <pluginManagement>
+    <plugins>
+
+      <!-- ================================================ -->
+      <!--            Compiler plugin 			    -->
+      <!-- ================================================ -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+        <configuration>
+	    <source>${jdk.source.version}</source>
+	    <target>${jdk.source.version}</target>
+	    <!-- <compilerArgument>-Xlint:unchecked</compilerArgument> -->
+	    <!-- Known bug in Maven 3.1 inverts useIncrementalCompilation -->
+	    <useIncrementalCompilation>false</useIncrementalCompilation>
+            <excludes>
+		<exclude>**/save/**</exclude>
+		<exclude>**/backup/**</exclude>
+		<exclude>**/unused/**</exclude>
+            </excludes>
+        </configuration>
+      </plugin>
+
+      <!-- ================================================ -->
+      <!--            Jar plugin 			    -->
+      <!-- ================================================ -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-jar-plugin</artifactId>
+	<version>${maven.jar.plugin.version}</version>
+	<configuration>
+	    <!-- <finalName>${project.artifactId}</finalName> -->
+	    <finalName>${jar.finalName}</finalName>
+	    <excludes>
+		<exclude>**/save/**</exclude>
+		<exclude>**/backup/**</exclude>
+		<exclude>**/unused/**</exclude>
+	    </excludes>
+	    <archive>
+		<manifest>
+			<mainClass>${jar.mainClass}</mainClass>
+		</manifest>
+	    </archive>
+	</configuration>
+      </plugin>
+
+      <!-- ================================================ -->
+      <!--    Assembly to create -all.jar with dependencies -->
+      <!-- ================================================ -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>${maven.assembly.plugin.version}</version>
+	<configuration>
+	      <finalName>${jar.finalName}-all</finalName>
+	      <archive>
+		<manifest>
+		    <mainClass>${jar.mainClass}</mainClass>
+		</manifest>
+	      </archive>
+	</configuration>
+        <executions>
+          <execution>
+            <id>make-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+	    <configuration>
+	      <attach>false</attach>
+	      <appendAssemblyId>false</appendAssemblyId>
+	      <descriptorRefs>
+		    <descriptorRef>jar-with-dependencies</descriptorRef>
+	      </descriptorRefs>
+	    </configuration>
+          </execution>
+	</executions>
+      </plugin>
+
+      <!-- ================================================ -->
+      <!--    Shade to create -all.jar with dependencies    -->
+      <!-- ================================================ -->
+      <!-- Use shade or assembly jar-with-dependencies -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven.shade.plugin.version}</version>
+        <configuration>
+    	    <finalName>${jar.finalName}-all</finalName>
+    	    <shadedArtifactId>${jar.finalName}-all</shadedArtifactId>
+	    <createDependencyReducedPom>false</createDependencyReducedPom>
+	    <!-- <minimizeJar>true</minimizeJar> -->
+	    <artifactSet>
+	    </artifactSet>
+	    <filters>
+	    </filters>
+	    <transformers>
+		<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+		    <mainClass>${jar.mainClass}</mainClass>
+		</transformer>
+	    </transformers>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+    </pluginManagement>
+  </build>
+
+  <!-- ================================================ -->
+  <!--            Reporting (mvn site)                  -->
+  <!-- ================================================ -->
+  <!-- Turn off reporting in modules by default -->
+  <reporting>
+    <plugins>
+	<plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-project-info-reports-plugin</artifactId>
+	    <version>${maven.project.info.reports.plugin.version}</version>
+	    <configuration>
+		<skip>true</skip>
+	    </configuration>
+	</plugin>
+	<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadoc.plugin.version}</version>
+	    <configuration>
+ 		<skip>true</skip>
+	    </configuration>
+	</plugin>
+    </plugins>
+  </reporting>
+
+  <!-- ================================================ -->
+  <!--            Profiles                              -->
+  <!-- ================================================ -->
+  <profiles>
+  </profiles>
+  
+  <!-- ================================================ -->
+  <!--            Environment                           -->
+  <!-- ================================================ -->
+  <issueManagement>
+  </issueManagement>
+
+  <ciManagement>
+  </ciManagement>
+
+  <mailingLists>
+  </mailingLists>
+
+  <scm>
+  </scm>
+
+  <prerequisites>
+  </prerequisites>
+
+  <!-- ================================================ -->
+  <!--            Repository configuration              -->
+  <!-- ================================================ -->
+  <distributionManagement>
+  </distributionManagement>
+
+  <repositories>
+  </repositories>
+
+  <pluginRepositories>
+  </pluginRepositories>
+
+</project>

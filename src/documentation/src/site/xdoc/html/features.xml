@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- =========================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+========================================================================== -->
+
+<document
+  xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+    <properties>
+	<title>Language Features</title>
+    </properties>
+    <meta name="keyword" content="interpreter, java"/>
+    <body>
+      <section name="Language Features">
+
+	Sample programs exercising many features of the Unicon language
+	may be found <a href="../samples/junicon">here</a>.
+	The programs can either be run interactively, or compiled to Java.
+
+	<p>
+	To run the samples interactively, 
+	download a sample, for example QuickSort.icn, and type:
+	<source>
+		junicon -i QuickSort.icn
+	</source>
+	From within Junicon, then type:
+	<source>
+		QuickSort.main("100");
+	</source>
+	Alternatively, you can run the program as a batch script by typing:
+	<source>
+		junicon QuickSort.icn 100
+	</source>
+	The other sample programs similarly take one input argument
+	for the sample size.
+	</p>
+
+	<p>
+	To compile the programs to Java, please see the section on 
+	<a href="../html/running.html">Running Junicon</a>.
+	</p>
+
+      </section>
+    </body>
+</document>

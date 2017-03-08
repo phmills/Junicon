@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+
+<!-- =========================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+========================================================================== -->
+
+<!--
+#====
+# Layout: Readme.txt, bin, config/{startup,transforms}, docs, lib, samples
+#====
+-->
+<assembly>
+  <id>bin</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <baseDirectory>${assembly.finalName}</baseDirectory>
+  <fileSets>
+    <!-- Readme files -->
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${master.basedir}</directory>
+	<outputDirectory></outputDirectory>
+	<includes>
+        	<include>Readme*</include>
+		<!--
+	        <include>License*</include>
+	        <include>Notice*</include>
+	        <include>Documentation*</include>
+		-->
+	</includes>
+    </fileSet>
+
+    <!-- Bin -->
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.bin}</fileMode>
+	<directory>${master.basedir}</directory>
+	<outputDirectory></outputDirectory>
+	<includes>
+		<include>bin/**</include>
+	</includes>
+	<excludes>
+		<exclude>**/build*</exclude>
+		<exclude>**/save/**</exclude>
+		<exclude>**/backup/**</exclude>
+		<exclude>**/unused/**</exclude>
+	</excludes>
+    </fileSet>
+
+    <!-- Config, transforms -->
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${source.interpreter.basedir}/src/main/resources</directory>
+	<outputDirectory></outputDirectory>
+	<includes>
+		<include>config/**</include>
+		<!--
+		<include>lib/**</include>
+		-->
+	</includes>
+	<excludes>
+		<exclude>**/save/**</exclude>
+		<exclude>**/backup/**</exclude>
+		<exclude>**/unused/**</exclude>
+		<exclude>**/.gitkeep</exclude>
+	</excludes>
+    </fileSet>
+
+    <!-- Interpreter jars -->
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${source.interpreter.build}</directory>
+	<outputDirectory>lib</outputDirectory>
+	<includes>
+        	<include>*.jar</include>
+	</includes>
+    </fileSet>
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${source.runtime.build}</directory>
+	<outputDirectory>lib</outputDirectory>
+	<includes>
+        	<include>*.jar</include>
+	</includes>
+    </fileSet>
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${source.groovy.build}</directory>
+	<outputDirectory>lib</outputDirectory>
+	<includes>
+        	<include>*.jar</include>
+	</includes>
+    </fileSet>
+
+    <!-- Test jars with dependencies -->
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${test.benchmark.build}</directory>
+	<outputDirectory>lib</outputDirectory>
+	<includes>
+        	<include>*-all.jar</include>
+	</includes>
+	<excludes>
+        	<exclude>original*.jar</exclude>
+        	<exclude>*shaded.jar</exclude>
+	</excludes>
+    </fileSet>
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${test.jmhBenchmark.build}</directory>
+	<outputDirectory>lib</outputDirectory>
+	<includes>
+        	<include>*-all.jar</include>
+	</includes>
+	<excludes>
+        	<exclude>original*.jar</exclude>
+        	<exclude>*shaded.jar</exclude>
+	</excludes>
+    </fileSet>
+
+    <!-- Main interpreter jar with dependencies -->
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>target</directory>
+	<outputDirectory>lib</outputDirectory>
+	<includes>
+        	<include>*-all.jar</include>
+	</includes>
+	<!-- Exclude shaded jar residual artifacts -->
+	<excludes>
+        	<exclude>original*.jar</exclude>
+        	<exclude>*shaded.jar</exclude>
+	</excludes>
+    </fileSet>
+
+    <!-- Documentation -->
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${documentation.build}/site</directory>
+	<outputDirectory>docs</outputDirectory>
+	<excludes>
+		<exclude>**/save/**</exclude>
+		<exclude>**/backup/**</exclude>
+		<exclude>**/unused/**</exclude>
+		<exclude>**/.gitkeep</exclude>
+	</excludes>
+    </fileSet>
+
+    <!-- Test suites -->
+    <fileSet>
+	<directoryMode>${permissions.dir}</directoryMode>
+	<fileMode>${permissions.file}</fileMode>
+	<directory>${samples.basedir}</directory>
+	<!--
+	<outputDirectory>test</outputDirectory>
+	-->
+	<outputDirectory></outputDirectory>
+	<includes>
+		<include>samples/**</include>
+	</includes>
+	<excludes>
+		<exclude>**/save/**</exclude>
+		<exclude>**/backup/**</exclude>
+		<exclude>**/unused/**</exclude>
+		<exclude>**/.gitkeep</exclude>
+	</excludes>
+    </fileSet>
+
+  </fileSets>
+
+</assembly>

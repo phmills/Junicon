@@ -1,0 +1,87 @@
+Usage:
+  To interpret: junicon	[options] [-i (display interactive prompt)]
+		[-c command] [-f file] [-] [-o outputfile] [file] [args...]
+      Options:
+	[-v* (verbose)] [-x (echo)] [-d* (debug/trace)] [-n* (do not)]
+	[-k (kill script on error)] [-K (exit on script error)]
+	[-D property=value] [-F (ignore system startup)] [-h (help/usage)]
+	[-Ic configDirectory (startup files location instead of in junicon)]
+
+  To compile: junicon [-eCETG] [options] [-o outputfile] file(s)
+	[-e (produce executable)] [-el (for Linux)] [-ew (for Windows)]
+	[-C (compile only, to jar file)]
+	[-E (preprocess only)]
+	[-T (just translate to Java)]
+	[-G (just translate to Groovy)]
+      Options:
+	[-R (do not include runtime in executable)]
+	[-Ic configDirectory (startup files location instead of in junicon)]
+
+  To extract: junicon [-X*]
+	[-Xc (extract config directory holding startup files)]
+	[-Xr (extract runtime jar)]
+
+  Interpreter options are, in detail:
+	[-h (help)]
+	[-x (echo input)]
+	[-v (verbose: see transformed code)]
+	[-vd (verbose detail: preprocessed, normalized, transformed)]
+	[-d (debug: see substrate exception on error)]
+	[-dd (debug detail)]
+	[-dt -dtp -dtn -dtt (trace XML for parse/normalize/transform)]
+	[-dtd (trace detail: see parser and substrate results)]
+	[-vf (apply verbose and trace to command-line scripts)]
+	[-vs (apply verbose and trace to system startup)]
+	[-n (do not execute)]
+	[-np (do not preprocess)]
+	[-nd (do not detect complete statements)]
+	[-nt (do not transform)] [-N (just normalize)]
+	[-na (evaluate input scripts line-by-line instead of as whole)]
+	[-ni (not interpretive, not create static imports or run main)]
+	[--groovy (output Groovy instead of Java)]
+	[--java (output Java instead of Groovy)]
+	[--manifest manifest (if translate to Java, default Manifest.mf)]
+	[-J (--java-syntax)]
+	[--java-syntax (use Java syntax: = assign, == compare, var and def)]
+	[--no-precision (turn off arbitrary precision arithmetic)]
+	[--java-origin (index origin 0 instead of 1)]
+	[-D property=value (as $define preprocessor directive)]
+	[-k (stop script on error)] [-K (exit on script error)]
+	[-F (ignore system script)]
+	[-Ic configDirectory (startup files location instead of in junicon)]
+
+  Junicon either interprets its input, or compiles it to Java.
+	When interpreting, input is processed in the following order:
+	system startup, user commands and script files, then stdin.
+	The first non-option argument is taken as a script filename,
+	whose main method will be invoked when interpreting unless -ni.
+	Remaining arguments are passed to its main method.
+	If scripts are given, no prompt will be displayed unless -i.
+	If a line starts with a @<script> directive,
+	lines up to an ending @</script> tag
+	are directly passed to the underlying Groovy or Java substrate.
+	Other @<...> transform directives in script files
+	will affect the entire script unless the -na option is used.
+	Junicon startup $defines the preprocessor flag JUNICON
+	so that scripts can test if they are running under Junicon.
+	Lastly, startup files are taken from inside Junicon's executable
+	unless a configuration directory is given by -C.
+
+  When compiling, junicon translates its input to Java, and
+	compiles it into a self-contained executable jar file.
+	If the filename already ends in .java, junicon skips translation
+	and just compiles its input.
+
+  Compiled executables use the following environment variables.
+	If JAVA_HOME is defined, uses that for java; otherwise searches PATH.
+	If CLASSPATH is defined, adds the executable to the classpath, and then
+		reflectively invokes the main-class in the manifest.
+	This workaround is because "java -jar" ignores the user classpath.
+	Otherwise, uses "java -jar" to invoke the self-contained executable jar.
+
+  Junicon normally runs as a self-contained executable jar.
+	However, its startup and configuration files can be dynamically
+	customized by first extracting them using "junicon -Xc",
+	making any desired changes, and
+	then running with "junicon -Ic config/startup/spring_config.xml".
+

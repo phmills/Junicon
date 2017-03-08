@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+
+<!-- =====================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+====================================================================== -->
+	
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+		      http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- ================================================ -->
+  <!--            Project identity                      -->
+  <!-- ================================================ -->
+  <groupId>edu.uidaho.junicon</groupId>
+  <artifactId>distribution</artifactId>
+  <packaging>pom</packaging>
+  <name>Distribution</name>
+
+  <!-- ================================================ -->
+  <!--            Parent module		                -->
+  <!-- ================================================ -->
+  <parent>
+    <groupId>edu.uidaho.junicon</groupId>
+    <artifactId>master</artifactId>
+    <version>1.8.4</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <!-- ================================================ -->
+  <!--            Properties				-->
+  <!-- ================================================ -->
+  <properties>
+    <master.basedir>${project.parent.basedir}</master.basedir>
+    <source.basedir>../source</source.basedir>
+    <test.basedir>../test</test.basedir>
+    <samples.basedir>../documentation/src/site/resources</samples.basedir>
+    <documentation.basedir>../documentation</documentation.basedir>
+    <distribution.basedir>../distribution</distribution.basedir>
+    <distribution.build>../distribution/target</distribution.build>
+
+    <source.interpreter.basedir>${source.basedir}/interpreter</source.interpreter.basedir>
+    <source.runtime.basedir>${source.basedir}/runtime</source.runtime.basedir>
+    <source.groovy.basedir>${source.basedir}/groovy</source.groovy.basedir>
+    <test.benchmark.basedir>${test.basedir}/benchmark</test.benchmark.basedir>
+    <test.jmhBenchmark.basedir>${test.basedir}/jmhBenchmark</test.jmhBenchmark.basedir>
+
+    <source.interpreter.build>${source.interpreter.basedir}/target</source.interpreter.build>
+    <source.runtime.build>${source.runtime.basedir}/target</source.runtime.build>
+    <source.groovy.build>${source.groovy.basedir}/target</source.groovy.build>
+    <source.interpreter.resources>${source.interpreter.basedir}/src/main/resources</source.interpreter.resources>
+    <test.benchmark.build>${test.benchmark.basedir}/target</test.benchmark.build>
+    <test.jmhBenchmark.build>${test.jmhBenchmark.basedir}/target</test.jmhBenchmark.build>
+    <documentation.build>${documentation.basedir}/target</documentation.build>
+    <distribution.build>${distribution.basedir}/target</distribution.build>
+
+    <permissions.dir>0755</permissions.dir>
+    <permissions.bin>0755</permissions.bin>
+    <permissions.file>0644</permissions.file>
+  </properties>
+
+  <!-- ================================================ -->
+  <!--            Dependencies                          -->
+  <!-- ================================================ -->
+  <dependencies>
+    <dependency>
+      <groupId>edu.uidaho.junicon</groupId>
+      <artifactId>junicon-interpreter</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.uidaho.junicon</groupId>
+      <artifactId>junicon-groovy</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <!-- ================================================ -->
+  <!--            Build                                 -->
+  <!-- ================================================ -->
+  <build>
+    <plugins>
+      <!-- ================================================ -->
+      <!--            Shade to create uber-jar              -->
+      <!-- ================================================ -->
+      <!-- Use shade or assembly jar-with-dependencies -->
+      <!--
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-jar-plugin</artifactId>
+	<configuration>
+	    <forceCreation>true</forceCreation>
+	</configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+	    <artifactSet>
+		<excludes>
+		    <exclude>jline:*</exclude>
+		    <exclude>jansi:*</exclude>
+		</excludes>
+	    </artifactSet>
+        </configuration>
+      </plugin>
+      -->
+
+      <!-- ================================================ -->
+      <!--            Assembly				    -->
+      <!-- ================================================ -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+
+	  <!-- Turn off default assembly -->
+          <execution>
+            <id>make-dependencies</id>
+            <phase>none</phase>
+	  </execution>
+
+          <execution>
+            <id>make-all-jar</id>
+            <phase>package</phase>
+            <goals>
+		<goal>single</goal>
+            </goals>
+	    <configuration>
+		<finalName>${assembly.artifactId}</finalName>
+		<descriptors>
+			<descriptor>src/main/assembly/dep.xml</descriptor>
+		</descriptors>
+	    </configuration>
+          </execution>
+
+          <execution>
+            <id>make-assembly</id>
+            <phase>site</phase>
+            <goals>
+		<goal>single</goal>
+            </goals>
+	    <configuration>
+		<finalName>${assembly.finalName}</finalName>
+		<descriptors>
+			<descriptor>src/main/assembly/bin.xml</descriptor>
+			<descriptor>src/main/assembly/src.xml</descriptor>
+		</descriptors>
+	    </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- ================================================ -->
+      <!--            Antrun to create executable jars	    -->
+      <!-- ================================================ -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-antrun-plugin</artifactId>
+	<version>${ant.version}</version>
+	<executions>
+          <execution>
+            <phase>site</phase>
+            <configuration>
+              <target name="Building_executable_jars">
+		<!-- Create junicon from junicon.sh + junicon-all.jar -->
+		<concat destfile="${distribution.build}/${assembly.artifactId}" binary="yes">
+		  <fileset file="${source.interpreter.resources}/config/bin/linux/runapp.sh"/>
+		  <fileset file="${distribution.build}/${assembly.artifactId}-all.jar"/>
+		</concat>
+		<chmod file="${distribution.build}/${assembly.artifactId}" perm="ugo+rx"/>
+		<!-- Create junicon.exe from BatRunner.exe + junicon-all.jar -->
+		<concat destfile="${distribution.build}/${assembly.artifactId}.exe" binary="yes">
+		  <fileset file="${source.interpreter.resources}/config/bin/windows/batrunner.exe"/>
+		  <fileset file="${source.interpreter.resources}/config/bin/windows/runapp.bat"/>
+		  <fileset file="${distribution.build}/${assembly.artifactId}-all.jar" />
+		</concat>
+		<chmod file="${distribution.build}/${assembly.artifactId}.exe" perm="ugo+rx"/>
+		<!-- Ant chmod only takes effect on Unix systems -->
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+	</executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

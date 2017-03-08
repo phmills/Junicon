@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!-- =========================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+========================================================================== -->
+
+<project name="Junicon"
+  xmlns="http://maven.apache.org/DECORATION/1.1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/DECORATION/1.1.0 http://maven.apache.org/xsd/decoration-1.1.0.xsd">
+
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-default-skin</artifactId>
+    <version>1.0</version>
+  </skin>
+  <!--
+  #====
+  # maven-default-skin 1.0
+  # maven-classic-skin 1.0
+  # maven-stylus-skin 1.2
+  #====
+  -->
+
+  <bannerLeft>
+    <name>Junicon</name>
+    <src>images/junicon/logo.png</src>
+    <href>http://www.unicon.org/</href>
+    <border>3</border>
+    <width>100</width>
+    <height>20</height>
+  </bannerLeft>
+  <!--
+  #====
+  # <bannerRight> </bannerRight>
+  #====
+  -->
+  <version position="right"/>
+  <publishDate position="right"/>
+
+  <body>
+    <head></head>
+
+    <links>
+      <item name="Unicon" href="http://www.unicon.org/"/>
+    </links>
+
+    <breadcrumbs>
+	<item name="Junicon" href="/index.html"/>
+    </breadcrumbs>
+
+    <menu name="About">	
+	<item name="Overview" href="index.html"/>
+	<item name="Project Summary" href="http://sourceforge.net/projects/junicon" target="_blank"/>
+    </menu>
+    <menu name="Downloads">
+	<item name="Download Junicon" href="http://sourceforge.net/projects/junicon/files/" target="_blank"/>
+	<item name="Release Notes" href="docs/Release-notes.txt" target="_blank"/>
+    </menu>
+    <menu name="Documentation">
+	<item name="Installing Junicon" href="html/installation.html"/>
+	<item name="Running Junicon" href="html/running.html"/>
+	<item name="Sample Programs" href="html/samples.html" collapse="true">
+          <item name="Hello World" href="html/simple.html"/>
+          <item name="Language Features" href="html/features.html"/>
+          <item name="Using Java" href="html/java.html"/>
+	</item>
+	<item name="Reference card" href="guides/junicon_reference_card.htm" target="_blank"/>
+	<item name="Publications" href="html/papers.html"/>
+    </menu>
+
+    <!--
+    #====
+    # <item name="Introduction" href="index.html"/>
+    # <item name="News" href="html/news.html"/>
+    # <item name="Features" href="html/features.html"/>
+    # <item name="Download" href="html/download.html"/>
+    # <item name="Installation" href="html/installation.html"/>
+    # <item name="Running" href="html/running.html"/>
+    # <item name="Release Notes" href="changes-report.html"/>
+    # <item name="Configuration" href="html/configuration.html"/>
+    # <item name="User guide" href="guides/junicon_user_guide.htm"/>
+    # <item name="FAQ" href="html/faq.html"/>
+    #====
+    # <item name="Release Notes" href=
+    #  "http://junicon.sourceforge.net/docs/Release-notes.txt" target="_blank"/>
+    #====
+    -->
+
+    <!--
+    #====
+    # <menu name="Links"> </menu>
+    #====
+    -->
+
+    <menu name="Reference" ref="reports"/>
+
+    <footer>
+	Copyright &copy; ${copyrightYear} ${owner}.
+	All Rights Reserved.
+    </footer>
+    <!--
+    	![CDATA[<a href="${ownerUrl}">${owner}</a>]]
+    -->
+
+  </body>
+</project>

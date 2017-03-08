@@ -1,0 +1,104 @@
+#====
+# Quicksort.
+#====
+$ifdef JUNICON
+package edu.uidaho.junicon.test.junicon;
+$endif
+
+class QuickSortFast ()
+
+#====
+# Main method.
+#   Populate list of given size with random elements.
+#   Then sort it.
+# USAGE: QuickSort size
+#====
+method main (args)
+  local size, m, i, result;
+  size := + args[1];
+  m := [];
+  every i := 1 to size do {
+	# put(m, ?size)
+	put(m, (size-i)+1)
+  }
+  write("Before: ")
+  # every write(!m);
+  write(m[*m]);
+  result := quicksort(m,1,*m)
+  write("After:  ")
+  # every write(!result);
+  write(result[*m]);
+end
+
+#====
+# Sort subset of X between lower and upper, inclusive.
+# Returns sorted list.
+#====
+method quicksort(X, lower, upper)
+  local pivot
+
+  if upper - lower > 0 then {
+    pivot := quickpartition(X,lower,upper)
+    quicksort(X,lower,pivot-1)	# left 
+    #====
+    # quicksort(X,pivot+1,upper)
+    #====
+    quicksort(X,pivot,upper)		# right
+  }
+
+  return X 
+end
+
+#====
+# Partition helper
+#====
+method quickpartition(X, lower, upper)
+  local pivot, mid, xlower, xupper
+
+  xlower := X[lower]	# pivotL[1]
+  xupper := X[upper]    # pivotL[2]
+  mid := X[lower + ?(upper-lower)]		# random midpoint
+  #==== Corrected to midpoint
+  # if (xupper < xlower) then xupper :=: xlower
+  # if (mid < xupper) then mid :=: xupper
+  # pivot := xupper
+  #====
+  if (xupper < xlower) then xupper :=: xlower
+  if (xupper < mid) then mid :=: xupper
+  if (mid < xlower) then mid :=: xlower
+  pivot := mid
+
+  lower -:= 1
+  upper +:= 1
+  while lower < upper do {		# find values on wrong side of pivot
+    while (pivot < X[upper -:= 1])	# rightmost 
+    while (X[lower +:= 1] < pivot)	# leftmost
+    if lower < upper then			# not crossed yet
+    	X[lower] :=: X[upper]			# swap 
+  }
+  return lower
+end
+
+end
+
+#====
+# Test procedure : used only by unicon
+#====
+$ifndef JUNICON
+procedure run_quicksortfast(args)
+  c := QuickSortFast();
+  c.main(args);
+end
+$endif
+
+#====
+# Main procedure : used only by unicon
+#====
+$ifdef MAIN
+procedure main(args)
+  c := QuickSortFast();
+  c.main(args);
+end
+$endif
+
+#==== END OF FILE

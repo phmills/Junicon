@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- =========================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+========================================================================== -->
+
+<document
+  xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+    <properties>
+	<title>Welcome to Junicon</title>
+	<!-- <author email="">name</author> -->
+    </properties>
+    <head>
+	<meta name="keyword" content="interpreter, java"/>
+    </head>
+    <body>
+      <section name="Overview">
+	<p>
+	Junicon is a Java-based interpreter for the Unicon programming language.
+	Unicon in turn is a unique object-oriented dynamic language
+	descended from Icon
+	that supports goal-directed evaluation of generator expressions.
+	Junicon's novel implementation uses program transformation to
+	translate Unicon into another scripting language, Groovy,
+	that runs under Java.  The result is
+	a transformational interpreter for goal-directed evaluation
+	that, because it runs on Java, is portable
+	and has access to the full range of 
+	Java facilities for concurrency and graphics.
+	</p>
+
+	<p>
+	A key feature of Junicon is its seamless integration with Java,
+	which allows Java methods, class fields, and data types 
+	to be accessed from Unicon, and vice-versa.
+	Junicon can function either as an
+	interactive line-by-line interpreter, or as a tool that can translate
+	its input to Java for compilation.
+	</p>
+      </section>
+
+      <section name="Goal-directed evaluation">
+	<p>
+	The key idea of goal-directed evaluation is that every expression is a
+	generator that produces a sequence of values or fails,
+	and function application searches to find successful results
+	over the cross-product of its operands.
+
+	For example, a simple expression
+	such as 
+	<source>
+		f((1 to 3) &gt; 1)
+	</source>
+	really means 
+	<source>
+		for i in (1 to 3) { if i &gt; 1 then f(i) else fail }
+	</source>
+	At each iteration the expression finds the next successful result,
+	and so produces the sequence
+	<source>
+		f(2), f(3)
+	</source>
+
+	In general,
+	<source>
+		f(e,e') = filter(succeed(concat(map(f, e x e'))))
+		where f(*,fail)=fail and f(fail,*)=fail
+	</source>
+
+	Unicon thus combines the power of generators with Prolog-like
+	backtracking search through a product space, in a very compact notation.
+	</p>
+
+      </section>
+    </body>
+</document>

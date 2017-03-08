@@ -1,0 +1,99 @@
+<!-- =========================================================================
+  Copyright (c) 2012 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+========================================================================== -->
+
+<BODY>
+<!-- ===================================================================== -->
+<!-- Author: Peter Mills                                                   -->
+<!-- ===================================================================== -->
+
+<HR>
+<P>
+Contains the implementation of the Unicon control constructs.
+The control constructs are equationally defined
+using iterator compositions.
+<P>
+The following is a summary of the
+transforms into the calculus kernel.
+Control constructs are transformed to simple constructor calls, e.g.
+<PRE>
+	if e1 then e2 else e3 ==> IconIf(e1,e2,e3)	
+</PRE>
+that invoke IconIterator kernel methods for the iterator calculus.
+<P>
+The exact iterator calculus kernel methods called for each of the constructs
+are defined by the following equations.
+<PRE>
+Primitives: exists(x), bound(x), bound(x).succeed()
+Define: |x| = x.bound() ~= forall(x:1) // always fails but record if nonEmpty
+Define: y.bound().succeed() = y;succeed:1      // succeeds once then fails
+Equation: exists(x) = not(isEmpty(x.bound()))
+Equation: bound(x) = exists(x);fail
+====
+x;y;z	   => reduce(x:1 | y:1) | z
+		== (x.bound() | y.bound() | z)
+			where x.bound() is equivalent to forall(x:1)
+			Bounded sequence, distinct from plain sequence ie concat
+{x;}	   => x;null	// done in normalization, with trailingEmpty
+every x	   => reduce(x)	// always fails
+		== x.reduce()
+every x do y => reduce(x & |y|)
+		== (x & y.bound()).reduce()
+while x do y => reduce((x:1 -> (y;succeed:1))*)
+		== ((x.bound() | y.bound().succeed().guard(x))*).reduce()
+		== every((x.bound() | y.bound().succeed().guard(x)).repeat())
+while x      => reduce((x:1 -> (null;succeed:1))*)
+until x do y => while (not x) do y
+		== ((x.exists().not() |
+			y.bound().succeed().guard(x))*).reduce()
+		== every((x.exists().not() | y.bound().succeed().guard(x))*)
+until x    => while (not x)
+repeat x   => reduce((x ; succeed:1)*)	OR: while (true) do x
+		== ((x.bound().succeed())*).reduce()
+		== every((x.bound().succeed()).repeat())
+		// repeat uses break, continue (sets isLoop)
+not x	   => not(exists(x))
+		== x.exists().not()
+if g then x else y => g -> x|y
+		== g.bound() | (x | y).guard(g)
+		== g() ; (x | y).guard(g)
+switch s { case c:e } => {{e'.guard(s);e.guard(e')}; ... }
+suspend e  => e.doSuspend()
+suspend e do y => (x in e) & ((suspend !x); |y| )
+		== (x in e) & ((lift(x).bound()).doSuspend() | y.bound())
+		// only suspends if succeed, else fail
+return e   => return exists(e)	// only returns if succeed, else fail
+		== exists(e).doReturn()
+break	   => null.doBreak()
+		break expr; is transformed to:
+		(loop break expr)* =>
+		(loop)* | (switch (broken) { which break expr })
+continue   => null.doContinue()
+</PRE>
+
+<P>
+<HR>
+
+</BODY>

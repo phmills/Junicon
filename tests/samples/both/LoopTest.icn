@@ -1,0 +1,46 @@
+#====
+# LoopTest.
+# USAGE: x:=LoopTest(lower); x.loop(lower,upper)
+#====
+$ifdef JUNICON
+package edu.uidaho.junicon.test.junicon;
+$endif
+
+class LoopTest(lower)
+    method loop(from,bound)
+        local count
+	every (from to bound) do {
+	    count := from
+            while (count <= bound) do { count +:= 1 }
+	}
+    end
+
+    method main(args)
+	local x;
+	x  := + args[1];
+	lower := 1;
+	loop(lower,x);
+    end
+end
+
+#====
+# Test procedure : used only by unicon
+#====
+$ifndef JUNICON
+procedure run_looptest(args)
+  c := LoopTest();
+  c.main(args);
+end
+$endif
+
+#====
+# Main procedure : used only by unicon
+#====
+$ifdef MAIN
+procedure main(args)
+  c := LoopTest();
+  c.main(args);
+end
+$endif
+
+#==== END OF FILE

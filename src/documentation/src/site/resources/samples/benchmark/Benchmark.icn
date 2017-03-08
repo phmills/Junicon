@@ -1,0 +1,134 @@
+#=============================================================================
+# Benchmark.icn times the execution of a Unicon program.
+# USAGE: Benchmark -w warmups -i iterations program sampleSize (run_matrix 100)
+# NOTE: Must compile benchmark programs with unicon -c.
+#=============================================================================
+link "Fannkuch"
+link "Mandelbrot"
+link "MeteorContest"
+link "Nbody"
+link "SpectralNorm"
+link "Matrix"
+link "NewInstances"
+link "Pidigits"
+link "PidigitsFast"
+link "QuickSort"
+link "QuickSortFast"
+
+invocable all
+
+procedure main (args)
+  local warmups, iterations, sampleSize, programName;
+  local arg, program, time, i;
+  local results, mean, stddev, confidence;
+  local nextarg;
+
+  nextarg := 1;
+  warmups := 1;
+  iterations := 1;
+  programName := "";
+  sampleSize := 1;
+  results := [];
+
+  # Handle command line arguments
+  if (*args < 2) then {
+	write("USAGE: Benchmark -w warmups -i iterations program [sampleSize]");
+	exit()
+  }
+  while (nextarg <= *args) do {
+	arg := args[nextarg];
+	if (arg == "-w") then {
+		if (nextarg < *args) then {
+			nextarg := nextarg + 1;
+			warmups := args[nextarg];
+		}
+	} else if (arg == "-i") then {
+		if (nextarg < *args) then {
+			nextarg := nextarg + 1;
+			iterations := args[nextarg];
+		}
+	} else {
+		programName := arg;
+		if (nextarg < *args) then {
+			nextarg := nextarg + 1;
+			sampleSize := args[nextarg];
+		}
+		break;
+	}
+	nextarg := nextarg + 1;
+  }
+
+  # Derive procedure from program name
+  program := proc(programName);
+   
+  # Perform warmups
+  every (i := 1 to warmups) do {
+  	write("Warmup ", i);
+	gettimes(program, sampleSize);
+  }
+
+  # Perform iterations
+  every (i := 1 to iterations) do {
+  	write("Iteration ", i);
+	time := gettimes(program, sampleSize);
+	write("Program ", programName, " Samplesize ", sampleSize,
+		" Time (ms) ", time);
+	put(results, time);
+  }
+
+  # Statistical analysis
+  mean := average(results);
+  stddev := standardDeviation(results, mean);
+  confidence := confidenceInterval(stddev, *results);
+  write("Mean ", mean, " +- ", confidence, " (Confidence @99%)");
+end
+
+#====
+# Time proc using the given sampleSize argument.
+# Returns: Execution time in milliseconds, includes both user and system time.
+# SEE ALSO: wallstart.sec, wallstart.usec
+#====
+procedure gettimes (func, arg)
+  local wallstart, cpustart, cpufinish, wallfinish;
+  wallstart := gettimeofday();
+  cpustart := &time;
+  func([arg]);
+  cpufinish := &time;
+  wallfinish := gettimeofday();
+  return cpufinish - cpustart;
+end
+
+#====
+# Average, standard deviation, confidence interval
+#====
+procedure average(list)
+  local total, i;
+  total := 0;
+  every (i := !list) do { total := total + i; }
+  return total/(*list);
+end
+
+procedure standardDeviation(list, mean)
+  local total;
+  total := 0;
+  every (i := !list) do { total := total + ((i - mean)*(i - mean)); }
+  return sqrt(total/(*list));	# *list-1 for sample stddev, Bessels correction
+end
+
+procedure confidenceInterval(stddev, numruns)
+  local coeff95, coeff99, coeff;
+  coeff95 := 1.96;
+  coeff99 := 2.575;	# 2.58
+  coeff := coeff99;
+  return (coeff * stddev)/sqrt(numruns);
+end
+
+procedure geometricMean(list)
+  local total, i, n;
+  total := 1;
+  n := *list;
+  every (i := !list) do { total := total * i; }
+  return total ^ (1/n);
+end
+
+#==== END OF FILE

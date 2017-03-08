@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+
+<!-- =====================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+====================================================================== -->
+	
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+		      http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- ================================================ -->
+  <!--            Project identity                      -->
+  <!-- ================================================ -->
+  <groupId>edu.uidaho.junicon</groupId>
+  <artifactId>junicon-groovy</artifactId>
+  <packaging>jar</packaging>
+  <name>Source - Groovy</name>
+
+  <!-- ================================================ -->
+  <!--            Parent module			        -->
+  <!-- ================================================ -->
+  <parent>
+    <groupId>edu.uidaho.junicon</groupId>
+    <artifactId>source</artifactId>
+    <version>1.8.4</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <!-- ================================================ -->
+  <!--            Properties                            -->
+  <!-- ================================================ -->
+  <properties>
+    <jar.finalName>${assembly.artifactId}-groovy</jar.finalName>
+  </properties>
+
+  <!-- ================================================ -->
+  <!--            Dependencies                          -->
+  <!-- ================================================ -->
+  <dependencies>
+    <!-- =================================== -->
+    <!--	Project dependencies	     -->
+    <!-- =================================== -->
+    <dependency>
+	<groupId>edu.uidaho.junicon</groupId>
+	<artifactId>junicon-runtime</artifactId>
+	<version>${project.version}</version>
+    </dependency>
+
+    <!-- =================================== -->
+    <!--	Other compile dependencies   -->
+    <!-- =================================== -->
+    <dependency>
+	<groupId>org.codehaus.groovy</groupId>
+	<artifactId>groovy-all</artifactId>
+    </dependency>
+
+    <!-- =================================== -->
+    <!--	Other runtime dependencies   -->
+    <!-- =================================== -->
+    <!-- Needed for groovy -->
+    <dependency>
+	<groupId>org.ow2.asm</groupId>
+	<artifactId>asm</artifactId>
+	<version>${asm.version}</version>
+	<scope>runtime</scope>
+    </dependency>
+    <!-- jansi, jline needed for groovysh -->
+    <dependency>
+	<groupId>jline</groupId>
+	<artifactId>jline</artifactId>
+	<version>${jline.version}</version>
+	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+	<groupId>org.fusesource.jansi</groupId>
+	<artifactId>jansi</artifactId>
+	<version>${jansi.version}</version>
+	<scope>runtime</scope>
+    </dependency>
+  </dependencies>
+
+  <!-- ================================================ -->
+  <!--            Build                                 -->
+  <!-- ================================================ -->
+  <build>
+    <plugins>
+      <!-- ================================================ -->
+      <!--	Create jar 				    -->
+      <!-- ================================================ -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-jar-plugin</artifactId>
+	<configuration>
+	    <archive>
+		<manifest>
+		</manifest>
+	    </archive>
+	</configuration>
+      </plugin>
+    </plugins>
+
+    <!-- ================================================ -->
+    <!--            Resources                             -->
+    <!-- ================================================ -->
+    <resources>
+    </resources>
+
+  </build>
+
+</project>

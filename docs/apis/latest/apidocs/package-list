@@ -1,0 +1,16 @@
+edu.uidaho.junicon.grammars.common
+edu.uidaho.junicon.grammars.document
+edu.uidaho.junicon.grammars.javacc
+edu.uidaho.junicon.grammars.junicon
+edu.uidaho.junicon.interpreter.interpreter
+edu.uidaho.junicon.interpreter.parser
+edu.uidaho.junicon.interpreter.transformer
+edu.uidaho.junicon.runtime.junicon.annotations
+edu.uidaho.junicon.runtime.junicon.constructs
+edu.uidaho.junicon.runtime.junicon.iterators
+edu.uidaho.junicon.runtime.junicon.operators
+edu.uidaho.junicon.runtime.util
+edu.uidaho.junicon.substrates.groovy.groovyshell
+edu.uidaho.junicon.substrates.groovy.iterators
+edu.uidaho.junicon.substrates.junicon
+edu.uidaho.junicon.support.transforms

@@ -1,0 +1,61 @@
+
+          The Junicon Transformational Interpreter
+                         Release Notes
+
+______________________________________________________________________________
+Junicon 1.8.4
+Release date:  September 22, 2015
+
+This is the fifth alpha release.
+
+This release supports multi-language integration using scoped annotations.
+Junicon classes, methods, and expressions
+can be embedded in Java or Groovy, and vice-versa, using
+annotations of the form @<script lang="junicon"> code @</script>
+(or "java" or "groovy", respectively).
+
+______________________________________________________________________________
+Junicon 1.8.3
+Release date:  May 27, 2015
+
+This is the fourth alpha release.
+
+This release supports all Unicon operators,
+including coexpressions and concurrency,
+and almost all built-in functions.
+Most ampersand-keywords are supported.
+
+Junicon is now packaged as a self-contained executable for Linux and Windows.
+It can compile programs to self-contained executables for Linux and Windows.
+
+______________________________________________________________________________
+Junicon 1.8.2
+Release date:  April 2, 2015
+
+This is the third alpha release.
+
+This release supports all Unicon operators,
+including coexpressions and concurrency,
+and almost all built-in functions.
+A core subset of ampersand-keywords are supported.
+
+______________________________________________________________________________
+Junicon 1.8.1
+Release date:  December 5 2014
+
+This is the second alpha release.
+
+This preliminary release supports all Unicon operators
+including coexpressions and concurrency,
+and a limited set of built-in functions.
+
+______________________________________________________________________________
+Junicon 1.8.0
+Release date:  June 12 2014
+
+This is the first alpha release.
+
+This prototype version only supports a limited set
+of operators and built-in functions.
+
+#==== END OF FILE

@@ -1,0 +1,2840 @@
+//============================================================================
+// Copyright (c) 2012 Orielle, LLC.  
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// This software is provided by the copyright holders and contributors
+// "as is" and any express or implied warranties, including, but not
+// limited to, the implied warranties of merchantability and fitness for
+// a particular purpose are disclaimed. In no event shall the copyright
+// holder or contributors be liable for any direct, indirect, incidental,
+// special, exemplary, or consequential damages (including, but not
+// limited to, procurement of substitute goods or services; loss of use,
+// data, or profits; or business interruption) however caused and on any
+// theory of liability, whether in contract, strict liability, or tort
+// (including negligence or otherwise) arising in any way out of the use
+// of this software, even if advised of the possibility of such damage.
+//============================================================================
+
+//============================================================================
+// Author: Peter Mills
+//============================================================================
+
+options {
+	STATIC = false;
+	MULTI = false;
+	VISITOR = false;
+	BUILD_NODE_FILES = true;
+	NODE_CLASS = "MyNode";
+	JAVA_UNICODE_ESCAPE = true;
+	// LOOKAHEAD = 4;
+	// FORCE_LA_CHECK = true;
+}
+
+//========================================================================
+// Inserted parser code
+//========================================================================
+PARSER_BEGIN(ParserBase)
+
+package edu.uidaho.junicon.grammars.junicon;
+
+import edu.uidaho.junicon.grammars.javacc.*;
+import edu.uidaho.junicon.grammars.common.ILineContext;
+import edu.uidaho.junicon.grammars.common.IGrammarParser;
+import edu.uidaho.junicon.grammars.common.IParserCache;
+import edu.uidaho.junicon.grammars.document.DocumentHandler;
+
+import javax.xml.stream.XMLStreamException;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import org.w3c.dom.Document;		// For DOM building
+
+class MyNode extends SimpleNode implements IMyNode { 
+  
+    public MyNode (int i) {
+	super(i);
+    }
+
+    public MyNode (ParserBase p, int i) {
+	super(p, i);
+    }
+  
+    private String name;
+
+    public void setName (String ident)  { name = ident; }
+
+    public String getName ()            { return name; }
+    
+    public VisitorClass visitor = null; 
+
+    public void setVisitor (VisitorClass visitor) {
+	this.visitor = visitor;
+    }
+  
+    public VisitorClass getVisitor () {
+	return visitor;
+    }
+  
+    public void dump (VisitorClass visitor, DocumentHandler dochandler,
+		IParserCache cache, int numsiblings) {
+	int numchildren = 0;
+	if (children != null) { numchildren = children.length; };
+	visitor.visit_start(this, dochandler, cache, numsiblings, numchildren);
+	if (children != null) {
+		for (int i = 0; i < numchildren; i++) {
+			MyNode n = (MyNode) children[i];
+			if (n != null) {
+			    VisitorClass v = n.visitor;
+			    if (v == null) {
+				System.out.println("Internal parser error: null visitor");
+				continue;
+			    }
+			    n.dump(v, dochandler, cache, numchildren);
+			};
+		};
+	};
+	visitor.visit_end(this, dochandler, cache, numsiblings, numchildren);
+    }
+
+    public void dump (VisitorClass visitor, IParserCache cache)
+		throws XMLStreamException {
+	DocumentHandler dochandler = new DocumentHandler();
+	dump(visitor, dochandler, cache, 1);
+    }
+}
+
+class VisitorTypes {
+    //====
+    // NamedVisitor creates the given tag, and adds token as a text node child.
+    // TagVisitor just creates the given tag.
+    // DelimiterVisitor creates a DELIMITER tag with @id=token.
+    // OpenDelimiterVisitor creates the given tag,
+    //		with a DELIMITER @id=token child.
+    //====
+    VisitorClass andKeywordVisitor = new TagVisitor("ANDKEYWORD");
+    VisitorClass allocationVisitor = new TagVisitor("ALLOCATION");
+    VisitorClass annotationVisitor = new TagVisitor("ANNOTATION");
+    VisitorClass annotationCommentVisitor = new TagVisitor("ANNOTATION",
+			"isComment", "true");
+    VisitorClass assignVisitor = new TagVisitor("ASSIGN");
+			// ("OPERATION", "assign", "true")
+    VisitorClass atomVisitor = new TagVisitor("ATOM");
+    VisitorClass augmentedVisitor = new NamedVisitor("OPERATOR",
+			"isAugment", "true");
+    VisitorClass bigLiteralVisitor = new TaggedLiteralVisitor("LITERAL",
+			"isBigLiteral", "true", "{<", ">}");	// BIGLITERAL
+    VisitorClass blockVisitor = new OpenDelimiterVisitor("BLOCK");
+    VisitorClass blockClosureVisitor = new TagVisitor("BLOCK",
+			"isClosure", "true");
+    VisitorClass boundedExpressionVisitor = new TagVisitor("EXPRESSION",
+			"isBounded", "true");
+    VisitorClass castVisitor = new TagVisitor("CAST");
+    VisitorClass closeCollectionVisitor = new CloseDelimiterVisitor();
+    VisitorClass closureVisitor = new TagVisitor("CLOSURE");
+    VisitorClass commandVisitor = new TagVisitor("COMMAND");
+    VisitorClass comprehensionVisitor = new OpenDelimiterVisitor("COMPREHENSION");
+    VisitorClass emptyComprehensionVisitor = new OpenDelimiterVisitor("COMPREHENSION",
+			"isEmpty", "true");
+    VisitorClass controlVisitor = new TagVisitor("STATEMENT",	// CONTROL
+			"isControl", "true");
+    VisitorClass declaredNameVisitor = new TagVisitor(
+		"DECLARATION", "isClassOrMethod", "true");
+    VisitorClass declaredGlobalVariableNameVisitor = new TagVisitor(
+		"DECLARATION", "isGlobalVariable", "true");
+    VisitorClass declaredLocalVariableNameVisitor = new TagVisitor(
+		"DECLARATION", "isLocalVariable", "true");    // or class field
+    VisitorClass declaredParameterNameVisitor = new TagVisitor(
+		"DECLARATION", "isParameter", "true");
+    VisitorClass delimiterVisitor = new DelimiterVisitor();	// DELIMITER
+    VisitorClass directiveVisitor = new TagVisitor("DIRECTIVE");
+    VisitorClass dollarVisitor = new TagVisitor("DOLLAR");	// Super invoke
+    VisitorClass dotnameVisitor = new TagVisitor("DOTNAME");
+    VisitorClass innerEmptyVisitor = new NamedVisitor("ATOM",   // EMPTY inner
+			"emptyInner", "true");
+    VisitorClass trailingEmptyVisitor = new NamedVisitor("ATOM",
+			"emptyTrailing", "true");	       // EMPTY trailing
+    VisitorClass allEmptyVisitor = new NamedVisitor("ATOM",
+			"allEmpty", "true");		       // All empty
+    VisitorClass expressionVisitor = new TagVisitor("EXPRESSION");
+    VisitorClass enumerationVisitor = new TagVisitor("ENUM");
+    VisitorClass groupVisitor = new TagVisitor("GROUP");
+    VisitorClass identifierVisitor = new NamedVisitor("IDENTIFIER");
+    VisitorClass keyvalueVisitor = new TagVisitor("KEYVALUE");
+    VisitorClass keywordVisitor = new NamedVisitor("KEYWORD");
+			// Keyword is synonymous with reserved word.
+    VisitorClass indexVisitor = new OpenDelimiterVisitor("INDEX");
+    VisitorClass invokeVisitor = new TagVisitor("INVOKE");
+    VisitorClass iteratorVisitor = new TagVisitor("ITERATOR");	    // STATEMENT
+    VisitorClass lhsVisitor = new TagVisitor("EXPRESSION",
+			"isLhs", "true");
+    VisitorClass listVisitor = new OpenDelimiterVisitor("LIST");    // ARRAY
+    VisitorClass emptyListVisitor = new OpenDelimiterVisitor("LIST",
+		"isEmpty", "true");
+    VisitorClass mapVisitor = new OpenDelimiterVisitor("MAP");
+    VisitorClass emptyMapVisitor = new OpenDelimiterVisitor("MAP",
+		"isEmpty", "true");
+    VisitorClass objrefVisitor = new TagVisitor("OBJREF");
+    VisitorClass operatorVisitor = new NamedVisitor("OPERATOR");
+    VisitorClass operatorBooleanVisitor = new NamedVisitor("OPERATOR",
+			"isBoolean", "true");
+    VisitorClass operationVisitor = new TagVisitor("OPERATION",
+			"isBinary", "true");
+    VisitorClass unaryOperationVisitor = new TagVisitor("OPERATION",
+			"isUnary", "true");
+    VisitorClass methodrefVisitor = new TagVisitor("METHODREF");  // PACKAGEREF
+    VisitorClass packagerefVisitor = new TagVisitor("PACKAGREF");
+    VisitorClass productVisitor = new TagVisitor("PRODUCT");	   // OPERATION
+    VisitorClass programVisitor = new TagVisitor("PROGRAM");
+    VisitorClass qualifiedVisitor = new TagVisitor("QUALIFIED");
+    VisitorClass setVisitor = new OpenDelimiterVisitor("SET");
+    VisitorClass emptySetVisitor = new OpenDelimiterVisitor("SET",
+			"isEmpty", "true");
+    VisitorClass sliceVisitor = new TagVisitor("SLICE");	   // KEYVALUE
+    VisitorClass statementVisitor = new TagVisitor("STATEMENT");
+    VisitorClass subscriptVisitor = new OpenDelimiterVisitor("SUBSCRIPT");
+    VisitorClass emptySubscriptVisitor = new OpenDelimiterVisitor("SUBSCRIPT",
+			"isEmpty", "true");
+    VisitorClass tupleVisitor = new OpenDelimiterVisitor("TUPLE"); // LIST
+    VisitorClass angleVisitor = new OpenDelimiterVisitor("TUPLE");
+    VisitorClass emptyTupleVisitor = new OpenDelimiterVisitor("TUPLE",
+			"isEmpty", "true");
+    VisitorClass typeVisitor = new TagVisitor("TYPE");
+
+    VisitorClass quoteVisitor = new NamedVisitor("LITERAL",	   // QUOTE
+			"isQuote", "true");
+    VisitorClass singleQuoteVisitor = new NamedVisitor("LITERAL",  // QUOTE
+			"isSingleQuote", "true");
+    VisitorClass wordVisitor = new NamedVisitor("LITERAL",
+			"isWord", "true");
+    VisitorClass integerVisitor = new NamedVisitor("LITERAL",
+			"isInteger", "true");
+    VisitorClass realVisitor = new NamedVisitor("LITERAL",
+			"isReal", "true");
+    VisitorClass radixVisitor = new NamedVisitor("LITERAL",
+			"isRadix", "true");
+}
+//==== OLD VERSION of lambda expression: {(args) -> expr}
+// VisitorClass closureVisitor = new OpenDelimiterVisitor("CLOSURE");
+//====
+
+public class ParserBase implements IGrammarParser {
+
+  IParserCache cache = null;
+  String rootTag = "PROGRAM";
+  ILineContext context = null;
+  static VisitorTypes visitorTypes = new VisitorTypes();
+
+  //============================================================
+  // Constructors
+  //============================================================
+  public ParserBase () {
+     this(new java.io.StringReader(""));
+  }
+
+  //============================================================
+  // Setters for dependency injection.
+  //============================================================
+  public void setParserCache (IParserCache parserCache) {
+	this.cache = parserCache;
+  }
+
+  public IParserCache getParserCache () {
+	return cache;
+  }
+
+  public void setRootTag (String rootTag) {
+	this.rootTag = rootTag;
+  }
+
+  public String getRootTag () {
+	return rootTag;
+  }
+
+  public void setContext (ILineContext context) {
+	this.context = context;
+  }
+
+  public ILineContext getContext () {
+	return context;
+  }
+
+  //============================================================
+  // Parse methods.
+  //============================================================
+  public boolean redirectInput (Reader stream) {
+	ReInit(stream);
+	return true;
+  }
+
+  public boolean redirectInput (InputStream stream) {
+	ReInit(stream);
+	return true;
+  }
+
+  public boolean redirectInput (String str) {
+	ReInit(new StringReader(str));
+	return true;
+  }
+
+  public Document parseInput() throws Exception {
+	Document document = null;
+	IMyNode n = RunParser();
+	DocumentHandler dochandler = new DocumentHandler();
+	dochandler.start_document(getRootTag());
+	n.setVisitor(new VisitorClass());
+	n.dump(n.getVisitor(), dochandler, cache, 1);
+	document = dochandler.end_document();
+	
+	return document;
+  }
+
+  public IMyNode RunParser () throws Exception {
+	return ParseAndVisit();
+  }
+
+  //============================================================
+  // Main.
+  //============================================================
+  /**
+   * Parse and print from file in args[0], with default System.in.
+   */
+  public static void main (String args[]) throws Exception {
+    InputStream input;
+    try {
+	// Get input file.
+	input = System.in;
+	if ((args != null) && (args.length > 0)) {
+		input = new FileInputStream(args[0]);
+	};
+
+	// Create parser.
+	IGrammarParser parser = new ParserBase();
+
+	// Run parser.
+	parser.setContext(null);
+	parser.redirectInput(input);
+	Document document = parser.parseInput();
+	DocumentHandler.print_document(document);
+
+    } catch (Exception e) {
+		e.printStackTrace(System.err);
+    }
+  }
+
+} 
+
+PARSER_END(ParserBase)
+
+/*************************************************************************
+ * Tokens
+ ************************************************************************/
+
+//========================================================================
+// Tokens: White space
+//========================================================================
+
+SKIP : /* WHITE SPACE */
+{
+  <WHITESPACE: " " | "\t" | "\f">
+}
+
+SPECIAL_TOKEN : /* NEWLINE */
+{
+  <NEWLINE: ("\n" | "\r" | "\r\n")>
+}
+
+//========================================================================
+// Tokens: Comments
+//========================================================================
+
+TOKEN :  /* Annotation Comment */
+{
+  <ANNOTATION_COMMENT_PREFIX: "#@<">
+  | < #REST_OF_LINE: (~["\n","\r"])* ("\n"|"\r"|"\r\n")? >
+}
+
+SPECIAL_TOKEN : /* COMMENTS */
+{
+  <SINGLE_LINE_COMMENT: "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? >
+}
+
+//========================================================================
+// Tokens: Reserved words
+//========================================================================
+
+TOKEN : /* RESERVED WORDS AND LITERALS */
+{
+  < ABSTRACT: "abstract" >
+| < BREAK: "break" >
+| < BY: "by" >
+| < CASE: "case" >
+| < CLASS: "class" >
+| < CREATE: "create" >
+| < THREAD: "thread" >
+| < CRITICAL: "critical" >
+| < DEFAULT_token: "default" >
+| < DO: "do" >
+| < ELSE: "else" >
+| < END: "end" >
+| < EVERY: "every">
+| < FAIL: "fail" >
+| < GLOBAL: "global">
+| < IF: "if" >
+| < IMPORT: "import" >
+| < IN: "in" >			// NEW for Junicon
+| < INITIAL: "initial" >
+| < INITIALLY: "initially" >
+| < INVOCABLE: "invocable" >
+| < LINK: "link" >
+| < LOCAL: "local" >
+| < METHOD: "method" >
+| < NEW: "new" >		// NEW for Junicon
+| < NEXT: "next" >
+| < NOT: "not" >
+| < NULL_LITERAL: "null" >	// NEW for Junicon
+| < OF: "of" >
+| < PACKAGE: "package" >
+| < PROCEDURE: "procedure" >
+| < RECORD: "record" >
+| < REPEAT: "repeat" >
+| < RETURN: "return" >
+| < STATIC: "static" >
+| < SUSPEND: "suspend" >
+| < THEN: "then" >
+| < TO: "to" >
+| < UNTIL: "until" >
+| < WHILE: "while" >
+}
+
+//========================================================================
+// Tokens: Separators
+//========================================================================
+
+TOKEN : /* SEPARATORS, DELIMITERS */
+{
+  < LPAREN: "(" >		// Grouping
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < DOTDOTDOT: "..." >
+| < DOT: "." >
+| < ANNOTATION: "@<" >
+| < AT: "@" >
+| < COMPR:       "[:" >		// List comprehension
+| < COMPREND:    ":]" >
+
+//====
+// NEW for Unicon
+//====
+| < COLON: ":" >
+| < COLONCOLON: "::" >
+
+//=====
+// EBCDIC encoding translation: $( $) $< $> => { } [ ]
+//=====
+| <LBRACE_EBCDIC: "$("> { matchedToken.image = "{"; matchedToken.kind = LBRACE; }
+| <RBRACE_EBCDIC: "$)"> { matchedToken.image = "}"; matchedToken.kind = RBRACE; }
+| <LBRACKET_EBCDIC: "$<"> { matchedToken.image = "["; matchedToken.kind = LBRACKET; }
+| <RBRACKET_EBCDIC: "$>"> { matchedToken.image = "]"; matchedToken.kind = RBRACKET; }
+
+//====
+// Token order (java): White space, comments, reserved words,
+//	 literals, identifiers, separators, operators
+//====
+
+}
+
+//========================================================================
+// Tokens: Operators, grouped by precedence
+//========================================================================
+
+TOKEN : /* OPERATORS */
+{
+  < AND: "&" >			// And
+| < QMARK: "?" >    		// Qmark (QuestionMark)
+| < ASSIGN:      ":=" >		// AssignOperators
+| < REVASSIGN:   "<-" >
+| < REVSWAP:     "<->" >
+| < SWAP:        ":=:" >
+				// AugmentedAssign
+| < PMATCH:      "??" >		// Pmatch
+				// To By
+| < POR:         ".|" >
+| < BAR: "|" >			// Bar (Or)
+| < PAND:        "&&" >
+| < GT: ">" >	    // (NMGT)	// Compare
+| < LT: "<" >	    // (NMLT)
+| < EQ: "==" >	    // (SEQ)
+| < LE: "<=" >	    // (NMLE)
+| < GE: ">=" >	    // (NMGE)
+| < EQUALS: "=" >   // (NMEQ)
+| < LSHIFT: "<<" >  // (SLT)
+| < RSHIFT: ">>" >  // (SGT)
+| < SLE:         "<<=" >
+| < EQUIV:       "===" >
+| < SGE:         ">>=" >
+| < NMNE:        "~=" >
+| < SNE:         "~==" >
+| < NEQUIV:      "~===" >
+| < PIMDASSN:    "$$" >
+| < PASSNONMATCH: "->" >
+| < SND:	"@>" >		// Concurrency threads
+| < SNDBK:	"@>>" >
+| < RCV:	"<@" >
+| < RCVBK:	"<<@" >
+| < CONCAT: "||" >		// Concat
+| < LCONCAT:     "|||" >
+				// Rules for pattern matching operators 
+| < PLUS: "+" >			// Add
+| < MINUS: "-" >
+| < INCR: "++" >    // (UNION)
+| < DECR: "--" >    // (DIFF)
+| < STAR: "*" >			// Multiply
+| < SLASH: "/" >
+| < PERCENT: "%" >  // (MOD)
+| < INTER:       "**" >
+| < CARET: "^" >		// Caret (Hat)
+| < BANG: "!" >			// Bang
+| < BACKSLASH:   "\\" >
+//====
+// | < AT: "@" >
+//====
+| < TILDE: "~" >		// Unary
+| < PSETCUR:     ".$" >
+| < PIPE: "|>">				// NEW for Junicon
+| < FUTURE: "|>>">			// NEW for Junicon
+| < COEXPR: "|<>">			// NEW for Junicon
+| < FIRSTCLASS: "<>">			// NEW for Junicon
+| < PARALLEL: "|<>|">			// NEW for Junicon
+//====
+// AT, not, BAR,		// More unary operators
+// CONCAT, LCONCAT		
+// DOT, BANG,
+// DECR, PLUS, STAR
+// SLASH, CARET, INTER
+// MINUS, EQUALS, NMNE
+// EQ, SNE, EQUIV
+// INCR, QMARK,
+// NEQUIV, BACKSLASH
+//====
+				// Control operators
+| < BACKQUOTE:   "`" >		//   Backquote (PUNEVAL)
+| < PCOLON:      "+:" >		//   Slicing
+| < MCOLON:      "-:" >
+| < DOLLAR:      "$" >		//   Dollar
+
+| < AUGMOD:      "%:=" >	// AugmentedAssign
+| < AUGAND:      "&:=" >
+| < AUGSTAR:     "*:=" >
+| < AUGINTER:    "**:=" >
+| < AUGPLUS:     "+:=" >
+| < AUGUNION:    "++:=" >
+| < AUGMINUS:    "-:=" >
+| < AUGDIFF:     "--:=" >
+| < AUGSLASH:    "/:=" >
+| < AUGNMLT:     "<:=" >
+| < AUGSLT:      "<<:=" >
+| < AUGSLE:      "<<=:=" >
+| < AUGNMLE:     "<=:=" >
+| < AUGNMEQ:     "=:=" >
+| < AUGSEQ:      "==:=" >
+| < AUGEQUIV:    "===:=" >
+| < AUGNMGT:     ">:=" >
+| < AUGNMGE:     ">=:=" >
+| < AUGSGT:      ">>:=" >
+| < AUGSGE:      ">>=:=" >
+| < AUGQMARK:    "?:=" >
+| < AUGAT:       "@:=" >
+| < AUGCARET:    "^:=" >
+| < AUGCONCAT:   "||:=" >
+| < AUGNEQUIV:   "~===:=" >
+| < AUGSNE:      "~==:=" >
+| < AUGNMNE:     "~=:=" >
+| < AUGLCONCAT:  "|||:=" >
+}
+
+//========================================================================
+// Tokens: Numeric literals
+//========================================================================
+
+TOKEN : /* NUMERIC LITERALS */
+{
+  < INTEGER_LITERAL:
+        <DECIMAL_LITERAL>
+  >
+|
+  < RADIX_LITERAL:	// 2-36 rR digits
+	<DECIMAL_LITERAL> ["r","R"] (["0"-"9","a"-"f","A"-"F"])+
+  >
+|
+  < #DECIMAL_LITERAL: (["0"-"9"])+ >
+|
+  < REAL_LITERAL:
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)?
+      | "." (["0"-"9"])+ (<EXPONENT>)?
+      | (["0"-"9"])+ <EXPONENT>
+  >
+|
+  < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+}
+
+//========================================================================
+// Tokens: Quote literals
+//========================================================================
+
+//====================
+// Double quote.
+//	Multiline quote uses _ at end of line,
+//	which ignores leading whitespace on next line.
+//	We also allow newlines and escaped newlines in quotes, without _.
+//====================
+TOKEN_MGR_DECLS :
+{
+  StringBuffer quoteImage;
+  int quoteEnd;
+}
+
+MORE :
+{
+  "\"" { quoteImage = new StringBuffer(); } : WithinQuote
+}
+
+<WithinQuote> SKIP :
+{
+  < "_" <NEWLINE> (<WHITESPACE>)* > {
+		// Append image up to _, before SKIP wipes it out.
+		quoteEnd = image.length() - lengthOfMatch;
+		if (quoteEnd > 0) { quoteImage.append(image,0,quoteEnd); };
+ 	} : WithinQuote
+}
+
+<WithinQuote> TOKEN :
+{
+  <STRING_LITERAL: "\""> {
+		quoteImage.append(image); 
+		matchedToken.image = quoteImage.toString(); 
+	} : DEFAULT
+}
+
+<WithinQuote> MORE :
+{
+//  < (~["\"","\\","\n","\r"]) | <ESCAPE_LITERAL_NO_NL> >
+    < (~["\"","\\"]) | <ESCAPE_LITERAL> >
+}
+
+//====================
+// Single quote -- multiline continuations are as for double quotes.
+//====================
+MORE :
+{
+  "'" { quoteImage = new StringBuffer(); } : WithinSingleQuote
+}
+
+<WithinSingleQuote> SKIP :
+{
+  < "_" <NEWLINE> (<WHITESPACE>)* > {
+		// Append image up to _, before SKIP wipes it out.
+		quoteEnd = image.length() - lengthOfMatch;
+		if (quoteEnd > 0) { quoteImage.append(image,0,quoteEnd); };
+ 	} : WithinSingleQuote
+}
+
+<WithinSingleQuote> TOKEN :
+{
+  <SINGLE_QUOTE_LITERAL: "'"> {
+		quoteImage.append(image); 
+		matchedToken.image = quoteImage.toString(); 
+	} : DEFAULT
+}
+
+<WithinSingleQuote> MORE :
+{
+//  < (~["'","\\","\n","\r"]) | <ESCAPE_LITERAL_NO_NL> >
+    < (~["'","\\"]) | <ESCAPE_LITERAL> >
+}
+
+//====================
+// Quote regex dependencies
+//====================
+
+TOKEN : /* QUOTE LITERALS */
+{
+  < #OLD_SINGLE_QUOTE_LITERAL:	/* LITERAL REMOVED:  ~["\n","\r"] */
+      "'"
+      ( (~["'","\\"]) | <ESCAPE_LITERAL> )*
+      "'"
+  >
+|
+  < #OLD_STRING_LITERAL:	/* LITERAL REMOVED:  ~["\n","\r"] */
+      "\""
+      ( (~["\"","\\"]) | <ESCAPE_LITERAL> )*
+      "\""
+  >
+| 
+  < #ESCAPE_LITERAL:		/* LITERAL REMOVED: alpha, octals */
+       "\\" ( <HEX_ESCAPE> | <OCTAL_ESCAPE> | <CONTROL_ESCAPE>
+	      | (["!"-"~"," ","\t","\n","\r","\f"])
+            )
+  >
+|
+  < #ESCAPE_LITERAL_NO_NL:    /* Not escape newline, but can whitespace */
+       "\\" ( <HEX_ESCAPE> | <OCTAL_ESCAPE> | <CONTROL_ESCAPE>
+	      | (["!"-"~"," ","\t","\f"])
+            )
+  >
+|
+  < #HEX_ESCAPE: ["x","X"] <HEX_DIGITS> >
+|
+  < #OCTAL_ESCAPE: ["0"-"7"] ["0"-"7"] >
+|
+  < #CONTROL_ESCAPE: "^" ["!"-"~"] >
+|
+  < #HEX_DIGITS: ["0"-"9","a"-"f","A"-"F"] >
+
+}
+
+//========================================================================
+// Tokens: Big literals (Block quotes, or Big quotes)
+//========================================================================
+
+TOKEN :		/* PATTERN and COMMAND LITERALS */
+{
+< BIG_LITERAL:		/* LITERAL REMOVED: quotes, ~["\n","\r"] */
+   "{<"
+   (   
+   (~[">","}","\\"])
+	| (">") (~["}","\\"])
+	| (~[">","\\"]) ("}")
+	| ((">") (<ESCAPE_LITERAL>))
+	| ((<ESCAPE_LITERAL>) ("}")?)
+   )*
+   ([">","}"])?
+   ">}"
+  > 
+
+}
+
+//========================================================================
+// Tokens: Identifiers
+//========================================================================
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER:  <IDENTIFIER_BASE> >
+|
+  < #IDENTIFIER_BASE:  <ALPHA> (<ALPHA>|<DIGIT>)* >
+|
+  < #ALPHA:
+      [
+       "A"-"Z",
+       "a"-"z",
+       "_"  
+      ]
+  >
+|
+  < #LETTER:
+      [
+       "\u0024",
+       "\u0041"-"\u005a",
+       "\u005f",
+       "\u0061"-"\u007a",
+       "\u00c0"-"\u00d6",
+       "\u00d8"-"\u00f6",
+       "\u00f8"-"\u00ff",
+       "\u0100"-"\u1fff",
+       "\u3040"-"\u318f",
+       "\u3300"-"\u337f",
+       "\u3400"-"\u3d2d",
+       "\u4e00"-"\u9fff",
+       "\uf900"-"\ufaff"
+      ]
+  >
+|
+  < #DIGIT:
+      [
+       "\u0030"-"\u0039",
+       "\u0660"-"\u0669",
+       "\u06f0"-"\u06f9",
+       "\u0966"-"\u096f",
+       "\u09e6"-"\u09ef",
+       "\u0a66"-"\u0a6f",
+       "\u0ae6"-"\u0aef",
+       "\u0b66"-"\u0b6f",
+       "\u0be7"-"\u0bef",
+       "\u0c66"-"\u0c6f",
+       "\u0ce6"-"\u0cef",
+       "\u0d66"-"\u0d6f",
+       "\u0e50"-"\u0e59",
+       "\u0ed0"-"\u0ed9",
+       "\u1040"-"\u1049"
+      ]
+  >
+
+}
+
+/*************************************************************************
+ * LANGUAGE GRAMMAR STARTS HERE
+ ************************************************************************/
+
+//========================================================================
+// Grammar
+//========================================================================
+
+/****
+Tags for the generated XML syntax tree are as follows:
+<PRE>
+
+identifier		# Atoms
+literal    @isInteger @isReal @isRadix (numbers)
+literal	   @isQuote ("") @isSingleQuote ('') @isBigLiteral {&lt; &gt;}
+literal    @isWord (null)
+andKeyword &amp;i
+methodref  i.i::i | ((Cast) i).i::i	# i::i called packageref in Unicon
+packagref  i.i::i		# type instead of reference in expression above
+dotname    i.i	# introduced atom when transforming commands, new allocation
+
+operator   @isAugment @isBoolean	# Operators
+delimiter  @id ,;
+keyword	   reserved word
+assign     x := y
+product    x &amp; y
+
+program			# Program, everything is expression
+expression
+type            # type, declaration, or atom used in expression
+                # e.g., declaration/ identifier | dotname
+		#       atom/ identifier | dotname
+declaration @isGlobalVariable, @isLocalVariable, @isParameter, @isClassOrMethod
+comment    #
+newline
+
+tuple      (e,e) | (e)	# Grouping
+list       [e,e] | [e]	@isEmpty=true if empty list or map
+block      {e;e} | {e}	@isClosure=true if body of closure
+set        {e,e}
+map        [e:e, ] | [e:e; ]
+angleTuple <e,e> | <e>
+comprehension [: e :]	# list comprehension
+
+			# Expressions
+			#     where e=expr, i=identifier, k=keyword, op=operator
+annotation &#64;&lt;i i=e ...&gt; e	# Scoped annotations are a hybrid of XML and Java annotations
+	   &#64;&lt;/i&gt;		# Can omit end tag for non-strict XML
+           &#64;&lt;i i=e .../&gt; e	# Can use abbreviated empty-element tags
+           &#64;&lt;i(i=e,...)&gt; e	# Can also use Java style attributes
+           &#64;&lt;i(e)&gt; e
+directive  $i e e # preprocessor
+dollar	   $i(e,) # super invoke
+keyvalue   e:e
+slice      e..e
+operation  e op e | op e   @isUnary @isBinary 
+qualified  i:i:i | i:i=i | i=i | i:i	# parameter declaration
+statement  k ...		# declaration, or control construct
+subscript  [e,e]		# when appears in index operation
+closure    (e,e) -> {e}		# alternative: {(e,e) -> e}
+
+			# Declarations
+dotname    i.i			# used in declarations, e.g., import and package
+enum       e,e | e e (open)	# used in declarations
+
+iterator   (i in e)	# Primaries
+cast       (type) e
+invoke     oe(,)[,]		# where oe is (alloc | atom | group)
+				# Restricted to e(e) after transformation
+index	   e[e]			# Only introduced after transformation
+objref     oe(,)[,].f(,)[,]	# where f is atom subset (identifier | methodref | "initially")
+atom       @emptyInner between or leading , or ;    @emptyTrailing    @allEmpty
+group
+command    dotname|id|methodref expr ...  # treated as dotname(expr,...)
+				# where expr is limited primary expression
+				#	that starts with identifier or literal
+allocation new e		# where e is type
+
+EXAMPLE:  (x=1) =>
+          expr/group/list/{expr/operation/{expr/atom/identifier,operator=,expr/atom/literal}}
+
+Concrete syntax tags: identifier, literal, keyword, operator, delimiter.
+
+</PRE>
+****/
+
+//========================================================================
+// Program structuring syntax follows.
+//========================================================================
+
+MyNode ParseAndVisit() : {} {
+ Start()
+ <EOF>
+ {jjtThis.visitor = visitorTypes.programVisitor; return jjtThis; }  
+}
+
+void Start() #void: {} {
+ (
+// AnnotationComment() |
+   PackageDeclaration()
+ | ImportDeclaration()
+ | Link()
+ | Invocable()
+// | Directive()
+ | LOOKAHEAD([AnnotationType()] RECORD()) Record()
+ | LOOKAHEAD([AnnotationType()] GLOBAL()) Global()
+ | LOOKAHEAD(ProcedurePrefix() LBRACE()) ProcedureNew()
+ | LOOKAHEAD([AnnotationType()] PROCEDURE()) Procedure()
+ | LOOKAHEAD(MethodPrefix()) Method() 
+//  | LOOKAHEAD (MethodPrefix() LBRACE()) RealMethodNew()
+//  | LOOKAHEAD (MethodPrefix()) RealMethod()
+ | LOOKAHEAD(ClassPrefix() LBRACE()) ClassDeclarationNew()
+ | LOOKAHEAD([AnnotationType()] CLASS()) ClassDeclaration()
+ | LOOKAHEAD(LocalDeclarationPrefix()) LocalDeclaration()
+//  | BlockStatement()
+ | LOOKAHEAD(BlockStatement()) BlockStatement()
+ | LOOKAHEAD(BlockAsExpr()) BlockAsExpr()
+ | LOOKAHEAD (LPAREN() [ParamList()] RPAREN() ClosureOperator()) LambdaAsExpr()
+// BlockLocals -- add in locals here if remove from BlockStatement
+ )*
+//====
+// Top level statement.
+//====
+}
+
+//====
+// Junicon allows optional trailing semicolons in declarations.
+//====
+void PackageDeclaration() #STATEMENT: {} {
+  (  (	LOOKAHEAD (PACKAGE() Type()) PACKAGE() Type()
+      | PACKAGE() TypeStringLiteral()		// NameorString()
+     )	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+  ) {jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void ImportDeclaration() #STATEMENT: {} {
+  ( IMPORT()
+    (   LOOKAHEAD (NameOrString() COMMA()) NameOrStringList()
+      | LOOKAHEAD (TypeStringLiteral()) TypeStringLiteral()
+      | [STATIC()] ImportName()
+    )	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+  ) {jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void Link() #STATEMENT: {} {
+	LINK() NameOrStringList()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void Invocable() #STATEMENT: {} {
+	INVOCABLE() InvocList()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void InvocList() #ENUM: {} {
+	Invocop() (COMMA() Invocop())* 
+{jjtThis.visitor = visitorTypes.enumerationVisitor;}
+}
+
+void Invocop() #EXPRESSION: {} {
+  (	TypeName()
+	| LOOKAHEAD(TypeStringLiteral() COLON())
+		TypeStringLiteral() COLON() TypeIntLiteral()
+	| TypeStringLiteral()
+  ) {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void Directive() #DIRECTIVE: {} {
+	DOLLAR() Identifier() SpacedArgList()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.directiveVisitor;}
+// Not need to wrap Identifier in this case as is filtered out in preprocessing.
+}
+
+void Record() #STATEMENT: {} {
+	[AnnotationType()] RECORD() DeclaredName() 
+	LPAREN() [ParamList()] RPAREN()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void Global() #STATEMENT: {} {
+	[AnnotationType()] GLOBAL() 
+	(  LOOKAHEAD (Type() Identifier()) Type() GlobalVarDeclList() SEMICOL()
+	 | GlobalVarDeclList()
+	   [LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+	)
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+//========================================================================
+// Procedures.
+//========================================================================
+
+void Procedure() #STATEMENT: {} {
+	ProcedurePrefix()
+	SEMICOL()			// PROBLEM: SEMICOL NOT END STATEMENT
+	ProcBody()
+	END()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void ProcedureNew() #STATEMENT: {} {
+	ProcedurePrefix()
+	ProcBodyNew()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void ProcedurePrefix() #void: {} {
+	[AnnotationType()] PROCEDURE() DeclaredName() 
+	LPAREN() [ParamList()] RPAREN() 
+}
+
+void Initial() #STATEMENT: {} {
+	INITIAL() Expr()
+	SEMICOL()				// KEPT SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void ProcBody() #STATEMENT: {} {		// Ends with SEMICOL
+      ( LOOKAHEAD (END()) AllEmptyBlock()
+      | BlockLocals()
+	[Initial()]
+	( (BlockStatement())+ TrailingEmptyBlock()
+	  | TrailingEmptyBlock()
+	)
+      )
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void ProcBodyNew() #void: {} {		// Inside { } of block
+      ( LOOKAHEAD (LBRACE() RBRACE()) LBRACE() AllEmptyBlock() RBRACE()
+      |
+	LBRACE()
+	BlockLocals()
+	[Initial()]
+	(  LOOKAHEAD (RBRACE()) TrailingEmptyBlock()
+	  | ExprSequence()
+	)
+	RBRACE()
+      )
+}
+
+void LocalDeclaration() #STATEMENT: {} {
+	LocalDeclarationPrefix()
+	( LOOKAHEAD (Type() Identifier()) Type() VarInitList()
+	  | VarInitList()
+	)
+	SEMICOL()				// KEPT SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void LocalDeclarationNoSemicolon() #STATEMENT: {} {	// NO SEMICOLON
+	LocalDeclarationPrefix()
+	( LOOKAHEAD (Type() Identifier()) Type() VarInitList()
+	  | VarInitList()
+	)
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void LocalDeclarationPrefix() #void: {} {
+	[AnnotationType()] (LOCAL() | STATIC())
+}
+
+//========================================================================
+// Classes.
+//========================================================================
+
+void ClassDeclaration() #STATEMENT: {} {
+	ClassPrefix()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]
+	ClassMethods()		    // PROBLEM: SEMICOL NOT END STATEMENT
+	END()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void ClassDeclarationNew() #STATEMENT: {} {
+	ClassPrefix()
+	LBRACE() ClassMethods() RBRACE() 
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void ClassPrefix() #void: {} {
+	[AnnotationType()] CLASS() DeclaredName() [Supers()] 
+	LPAREN() [ParamList()] RPAREN() 
+}
+
+void ClassMethods() #void: {} {
+	( LOOKAHEAD(MethodPrefix())
+	  Method() 
+	| LOOKAHEAD([AnnotationType()] GLOBAL())
+	  Global()
+	| LOOKAHEAD([AnnotationType()] RECORD())
+	  Record() 
+	| LOOKAHEAD(LocalDeclarationPrefix())
+	  LocalDeclaration()
+	| LOOKAHEAD(AnnotationType() BigLiteral())
+	  EmbeddedScript()
+	)*
+	[SEMICOL()]				// KEPT OPTIONAL SEMICOL
+	[LOOKAHEAD (InitiallyPrefix() LBRACE())
+	  InitiallyNew()
+	| Initially()]
+// BlockLocals -- can make all locals above in class at front if desired
+}
+
+void Supers() #QUALIFIED: {} {
+	COLON() Super() (COLON() Super())*
+{jjtThis.visitor = visitorTypes.qualifiedVisitor;}
+}
+
+void Super() #void: {} {
+	LOOKAHEAD (Identifier() COLONCOLON()) MethodRefType()
+	| Type()
+}
+
+void Initially() #STATEMENT: {} {
+	InitiallyPrefix()
+	SEMICOL()			// PROBLEM: SEMICOL NOT END STATEMENT
+	ProcBody()
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void InitiallyNew() #STATEMENT: {} {
+	InitiallyPrefix()
+	ProcBodyNew()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+{jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void InitiallyPrefix() #void: {} {
+	INITIALLY() [LPAREN() [ParamList()] RPAREN()]
+}
+
+void Method() #STATEMENT: {} {
+  (  LOOKAHEAD ([AnnotationType()] ABSTRACT()) AbstractMethod()
+   | LOOKAHEAD (MethodPrefix() LBRACE()) RealMethodNew()
+   | RealMethod()
+  ) {jjtThis.visitor = visitorTypes.statementVisitor;}
+}
+
+void AbstractMethod() #void: {} {
+	MethodPrefix()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+}
+
+void RealMethod() #void: {} {
+	MethodPrefix()
+	SEMICOL()			// PROBLEM: SEMICOL NOT END STATEMENT
+	ProcBody()
+	END()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+}
+
+void RealMethodNew() #void: {} {
+	MethodPrefix()
+	ProcBodyNew()
+	[LOOKAHEAD(SEMICOL()) SEMICOL()]	// ADDED OPTIONAL SEMICOL
+}
+
+void MethodPrefix() #void: {} {
+	[AnnotationType()] 
+	[ABSTRACT()]
+	[LOOKAHEAD(MethodModifiers()) MethodModifiers()]
+	METHOD() DeclaredName() LPAREN() [ParamList()] RPAREN()
+}
+
+void MethodModifiers() #void: {} {
+	STATIC()	// PUBLIC() PRIVATE()
+}
+
+//============================================================================
+// Declared names (variables and parameters), Types, and Atoms in expressions.
+//============================================================================
+void IdList() #void: {} {	// #ENUM
+	DeclaredName() (COMMA() DeclaredName())*
+}
+
+void DeclaredName() #DECLARATION: {} {
+	Identifier()
+{jjtThis.visitor = visitorTypes.declaredNameVisitor;}
+}
+
+void VarInitList() #ENUM: {} {
+	VariableInitializer() (COMMA() VariableInitializer())*
+{jjtThis.visitor = visitorTypes.enumerationVisitor;}
+}
+
+void VariableInitializer() #OPERATION(>1): {} {
+      ( LOOKAHEAD (LocalVariable() ASSIGN())
+	LocalVariable() ASSIGN() Expr()
+      | LocalVariable()
+      )
+{jjtThis.visitor = visitorTypes.assignVisitor;}
+}
+
+void LocalVariable() #DECLARATION: {} {
+	Identifier()
+{jjtThis.visitor = visitorTypes.declaredLocalVariableNameVisitor;}
+}
+
+void GlobalVarDeclList() #ENUM: {} {
+	GlobalVariable() (COMMA() GlobalVariable())*
+{jjtThis.visitor = visitorTypes.enumerationVisitor;}
+}
+
+void GlobalVariable() #DECLARATION: {} {	// QUALIFIED
+	Identifier()
+{jjtThis.visitor = visitorTypes.declaredGlobalVariableNameVisitor;}
+}
+
+void ParamList() #void: {} {	// #ENUM
+    (	LOOKAHEAD (Params() LBRACKET())
+	Params() LBRACKET_TYPE() RBRACKET_TYPE()
+      | Params()
+    )
+}
+
+void Params() #void: {} {
+	Param() (COMMA() Param())*
+}
+
+void Param() #QUALIFIED: {} {
+    (   LOOKAHEAD(JavaTypedParameter()) JavaTypedParameter()
+      | ( DeclaredParameterName() 
+	[ LOOKAHEAD (COLON() Type()) COLON() Type() ]
+	[ LOOKAHEAD ((COLON() | EQUALS()) TypeLiteral())
+		(COLON() | EQUALS()) TypeLiteral() ]
+        )
+    ) 
+{jjtThis.visitor = visitorTypes.qualifiedVisitor;}
+}
+//====
+// Parameter can be param[:type][: or =literal]
+//====
+
+void JavaTypedParameter() #void: {} {
+	ParameterType()
+	DeclaredParameterName() 
+	[ LOOKAHEAD ((EQUALS()) TypeLiteral())
+		(EQUALS()) TypeLiteral() ]
+}
+
+void DeclaredParameterName() #DECLARATION: {} {
+	Identifier()
+{jjtThis.visitor = visitorTypes.declaredParameterNameVisitor;}
+}
+
+void ParameterType() #TYPE: {} {
+    (	LOOKAHEAD (Identifier() DOT()) DotName()
+      | Identifier()
+    )
+    [ LOOKAHEAD (DOTDOTDOT()) DOTDOTDOT() ]
+{jjtThis.visitor = visitorTypes.typeVisitor;}
+}
+
+void Type() #TYPE: {} {		// DotNameMaybe
+    (	LOOKAHEAD (GenericType()) GenericType()
+      | LOOKAHEAD (Identifier() DOT()) DotName()
+      | Identifier()
+    )
+{jjtThis.visitor = visitorTypes.typeVisitor;}
+}
+
+void GenericType() #void: {} {		// Allows generic type T<V,R>
+    DotNameMaybe() LANGLE_TUPLE() TypeList() RANGLE_TUPLE()
+}
+
+void TypeList() #void: {} {    // #ENUM
+	Type() (COMMA() Type())*
+// {jjtThis.visitor = visitorTypes.enumerationVisitor;}
+}
+
+void TypeName() #TYPE: {} {
+	Identifier()
+{jjtThis.visitor = visitorTypes.typeVisitor;}
+}
+
+void MethodRefType() #TYPE: {} {	// Method Reference or Unicon Packageref
+	PackageRef()
+{jjtThis.visitor = visitorTypes.typeVisitor;}
+}
+
+void PackageRef() #PACKAGEREF: {} {	// Method Reference or Unicon Packageref
+	LOOKAHEAD (Identifier() DOT()) DotName() COLONCOLON() Identifier()
+	| LOOKAHEAD (Identifier()) SingleDotName() COLONCOLON() Identifier()
+	| EmptyDotName() COLONCOLON() Identifier()
+{jjtThis.visitor = visitorTypes.packagerefVisitor;}
+}
+
+void DotName() #DOTNAME: {} {
+	Identifier() ( LOOKAHEAD(DOT()) DOT() RelaxedIdentifier() )+ 
+{jjtThis.visitor = visitorTypes.dotnameVisitor;}
+}
+
+void SingleDotName() #DOTNAME: {} {
+	Identifier()
+{jjtThis.visitor = visitorTypes.dotnameVisitor;}
+}
+
+void EmptyDotName() #DOTNAME: {} {
+	AllEmptyAtom()
+{jjtThis.visitor = visitorTypes.dotnameVisitor;}
+}
+
+void DotNameMaybe() #void: {} {
+    (	LOOKAHEAD (Identifier() DOT()) DotName()
+      | Identifier()
+    )
+}
+
+void ImportName() #TYPE: {} {
+    (	LOOKAHEAD (Identifier() DOT()) ImportDotName()
+      | Identifier()
+    )
+{jjtThis.visitor = visitorTypes.typeVisitor;}
+}
+
+void ImportDotName() #DOTNAME: {} {
+	Identifier() ( LOOKAHEAD(DOT()) DOT() ( Identifier() | STAR() ) )+ 
+{jjtThis.visitor = visitorTypes.dotnameVisitor;}
+}
+
+void SpacedArgList() #ENUM: {} {
+	(Identifier() | Literal())*	// <NEWLINE>
+{jjtThis.visitor = visitorTypes.enumerationVisitor;}
+// Only used by directive, so can have unwrapped identifier.
+}
+
+void NameOrStringList() #ENUM: {} {
+	NameOrString() (COMMA() NameOrString())*
+{jjtThis.visitor = visitorTypes.enumerationVisitor;}
+}
+
+void NameOrString() #void: {} {
+	TypeName() | TypeStringLiteral()
+}
+
+void TypeLiteral() #TYPE: {} {
+	Literal()
+{jjtThis.visitor = visitorTypes.typeVisitor;}
+}
+
+void TypeStringLiteral() #TYPE: {} {
+	StringLiteral()
+{jjtThis.visitor = visitorTypes.typeVisitor;}
+}
+
+void TypeIntLiteral() #TYPE: {} {
+	IntLiteral()
+{jjtThis.visitor = visitorTypes.typeVisitor;}
+}
+
+//========================================================================
+// Parameterized closure.
+//========================================================================
+void Closure() #CLOSURE: {} {		// CLOSURE  (x,y) -> { expr } 
+	LPAREN() [ParamList()] RPAREN() 
+	ClosureOperator() 
+	LBRACE() 
+	ExprSequenceAsBlock()	// Block()
+	RBRACE()
+{jjtThis.visitor = visitorTypes.closureVisitor;}
+}
+
+void ExprSequenceAsBlock() #void: {} {
+      (	LOOKAHEAD(RBRACE()) AllEmptyBlock()
+      |	BlockLocals()
+	( LOOKAHEAD (RBRACE()) TrailingEmptyBlock()
+	| ExprSequence()
+	)
+      )
+
+//====
+// OLD VERSION of lambda expression: {(args) -> expr}
+//====
+// void Closure() #void: {} {		// CLOSURE  { (x,y) -> expr } 
+//	LBRACE_CLOSURE() 
+//	LPAREN() [ParamList()] RPAREN() 
+//	ClosureOperator() 
+//	ExprSequenceAsBlock()	// Block()
+//	RBRACE_CLOSURE()
+// }
+// void ExprSequenceAsBlock() #BLOCK: {} {
+//      (	LOOKAHEAD(RBRACE()) AllEmptyBlock()
+//      |	BlockLocals()
+//	( LOOKAHEAD (RBRACE()) TrailingEmptyBlock()
+//	| ExprSequence()
+//	)
+//      )
+// {jjtThis.visitor = visitorTypes.blockClosureVisitor;}
+// }
+//====
+}
+
+//========================================================================
+// Block statements and bounded expressions.
+//========================================================================
+
+void Block() #void: {} {
+	LOOKAHEAD (LBRACE() RBRACE())
+		LBRACE() AllEmptyBlock() RBRACE()
+      | LOOKAHEAD (LBRACE() BlockLocals() RBRACE())
+		LBRACE() BlockLocals() TrailingEmptyBlock() RBRACE()
+      | LBRACE() BlockLocals() ExprSequence() RBRACE()
+//====
+// BlockLocals -- can remove locals above if not want interleaved
+//====
+// {jjtThis.visitor = visitorTypes.blockVisitor;}
+//====
+}
+
+void BlockLocals() #void: {} {
+    (LOOKAHEAD(LocalDeclarationPrefix()) LocalDeclaration())*
+}
+
+void ExprSequence() #void: {} {
+	( LOOKAHEAD (SEMICOL()) InnerEmptyBlock()	// XX: SEMICOL()
+	  | Nothing()
+	)
+	( LOOKAHEAD (BlockExpr()) BlockExpr()
+	  | Nothing()
+	)
+	( LOOKAHEAD (SEMICOL() BlockExpr()) SEMICOL() BlockExpr()
+	  | SEMICOL() InnerEmptyBlock()
+	)*
+//====
+// Slight inconsistency in that may end with InnerEmpty instead of TrailingEmpty
+//====
+// {jjtThis.visitor = visitorTypes.expressionVisitor;}
+//====
+}
+
+//====
+// ExprSequence is to be non-empty, and ends with an expression or innerEmpty.
+//	If it would be empty, test and use allEmpty instead.
+// Invariant: {AllEmpty} or {x;TrailingEmpty} or {x;y} where x may be InnerEmpty
+//====
+// We pad leading ";", trailing ";", and ";;" with an empty atom.
+// We indicate an empty ExprSequence with AllEmpty().
+// A trailing Empty() mimics Icon sequence semantics which ends with ;null.
+// Transform must later detect last expr after semicolon to be unbounded.
+//====
+
+void BlockAsExpr() #EXPRESSION: {} {
+	BlockAsGroup()
+  {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void BlockAsGroup() #GROUP: {} {
+	Block()
+  {jjtThis.visitor = visitorTypes.groupVisitor;}
+}
+
+void LambdaAsExpr() #EXPRESSION: {} {
+	LambdaAsGroup()
+  {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void LambdaAsGroup() #GROUP: {} {
+	Closure()
+  {jjtThis.visitor = visitorTypes.groupVisitor;}
+}
+
+void AllEmptyExpr() #EXPRESSION: {} {
+	AllEmptyAtom()
+  {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void AllEmptyBlock() #void: {} {	// EXPRESSION
+  {}
+}
+
+void AllEmptyList() #void: {} {		// EXPRESSION
+  {}
+}
+
+void InnerEmptyBlock() #EXPRESSION: {} {
+	InnerEmptyAtom()
+  {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void InnerEmptyList() #EXPRESSION: {} {
+	InnerEmptyAtom()
+  {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void TrailingEmptyBlock() #EXPRESSION: {} {	// ExprSequence in BRACE
+	TrailingEmptyAtom()
+  {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void TrailingEmptyList() #EXPRESSION: {} {	// ExprList in PAREN or BRACKET
+	TrailingEmptyAtom()
+  {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void AllEmptyAtom() #EMPTY: {} {
+  {jjtThis.visitor = visitorTypes.allEmptyVisitor;}
+}
+
+void InnerEmptyAtom() #ATOM: {} {
+  {jjtThis.visitor = visitorTypes.innerEmptyVisitor;}
+}
+
+void TrailingEmptyAtom() #ATOM: {} {
+  {jjtThis.visitor = visitorTypes.trailingEmptyVisitor;}
+}
+
+void BlockStatement() #void: {} {
+	InnerEmptyBlock() SEMICOL()
+      | BoundedExpr() SEMICOL()
+}
+//====
+// Blockstatement ends with semicolon.
+//====
+
+void BlockExpr() #void: {} {
+	BoundedExpr()
+}
+//====
+// BlockExpr need not have semicolon after it.
+//====
+
+void BoundedExpr() #EXPRESSION(>1): {} {
+  (	LOOKAHEAD (ANNOTATION())
+	(LOOKAHEAD (ANNOTATION()) Annotation())+ PlainExpression()
+      | PlainExpression()
+  ) {jjtThis.visitor = visitorTypes.boundedExpressionVisitor;}
+}
+
+void Expr() #EXPRESSION(>1): {} {
+  (	LOOKAHEAD (ANNOTATION())
+	(LOOKAHEAD (ANNOTATION()) Annotation())+ PlainExpression()
+      | PlainExpression()
+  ) {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void PlainExpression() #EXPRESSION: {} {
+  (   LOOKAHEAD(StatementLookahead()) Statement()
+    | LOOKAHEAD(Command()) Command()
+    | AndExpression()
+  ) {jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void StatementExpression() #EXPRESSION: {} {
+	Statement()
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+//========================================================================
+// Control constructs.
+//========================================================================
+
+void Statement() #CONTROL: {} {
+  (	If() | Case() | While() | Until() | Every() | Repeat()
+	| Create() | Thread()
+	| Next() | Break() | Fail() | Suspend() | Return()
+	| Critical() | Puneval()
+  ) {jjtThis.visitor = visitorTypes.controlVisitor;}
+}
+
+void StatementLookahead() #void: {} {
+    (IF() | CASE() | WHILE() | UNTIL() | EVERY() | REPEAT()
+	| CREATE() | THREAD() | NEXT() | BREAK() | FAIL()
+	| SUSPEND() | RETURN() | CRITICAL() | PUNEVAL())
+}
+
+void If() #void: {} {
+	IF() BoundedExpr() THEN() Expr() [LOOKAHEAD(ELSE()) ELSE() Expr()]
+}
+
+void Case() #void: {} {
+	CASE() BoundedExpr() OF() LBRACE() CaseList() RBRACE()
+}
+
+void CaseList() #void: {} {
+	CaseItem() (SEMICOL() CaseItem())*
+}
+
+void CaseItem() #KEYVALUE: {} {
+  (	(BoundedExpr() COLON() Expr()) | (DEFAULT() COLON() Expr())
+  ) {jjtThis.visitor = visitorTypes.keyvalueVisitor;}
+}
+
+void While() #void: {} {
+	WHILE() BoundedExpr() [LOOKAHEAD(DO()) DO() BoundedExpr()]
+}
+
+void Until() #void: {} {
+	UNTIL() BoundedExpr() [LOOKAHEAD(DO()) DO() BoundedExpr()]
+}
+
+void Every() #void: {} {
+	EVERY() Expr() [LOOKAHEAD(DO()) DO() BoundedExpr()]
+}
+
+void Repeat() #void: {} {
+	REPEAT() [LOOKAHEAD(BoundedExpr()) BoundedExpr()]
+}
+
+void Create() #void: {} {
+	CREATE() Expr()
+}
+
+void Thread() #void: {} {
+	THREAD() Expr()
+}
+
+void Next() #void: {} {
+	NEXT()
+}
+
+void Break() #void: {} {
+	BREAK() 
+	( LOOKAHEAD (Expr()) Expr()
+	| AllEmptyExpr() )
+}
+
+void Fail() #void: {} {
+	FAIL()
+}
+
+void Suspend() #void: {} {
+	SUSPEND()
+	( LOOKAHEAD(Expr()) SuspendExpr()
+	| AllEmptyExpr() )
+}
+
+void SuspendExpr() #EXPRESSION: {} {
+	Expr() [LOOKAHEAD(DO()) DO() BoundedExpr()]
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void Return() #void: {} {
+	RETURN()
+	( LOOKAHEAD(BoundedExpr()) BoundedExpr()
+	| AllEmptyExpr() )
+}
+
+void Critical() #void: {} {
+	CRITICAL() BoundedExpr()
+}
+
+void Puneval() #void: {} {
+	PUNEVAL() Expr()
+}
+
+void Command() #COMMAND: {} {
+	CommandNameAsAtom() 
+	( LOOKAHEAD (SingleItem()) LimitedPrimaryExpression() )+
+{jjtThis.visitor = visitorTypes.commandVisitor;}
+}
+
+void CommandNameAsAtom() #ATOM: {} {
+    (	LOOKAHEAD (MethodRef()) MethodRef()
+      | LOOKAHEAD (Identifier() DOT()) DotName()
+      | StrictIdentifier()
+    )
+{jjtThis.visitor = visitorTypes.atomVisitor;}
+}
+
+void LimitedPrimaryExpression() #EXPRESSION: {} {	// Without groups
+  ( LOOKAHEAD(LimitedInvokeExpr() DOT()) LimitedObjectRef()
+    | LimitedInvokeExpr() // includes invoke and standalone atom, but no group
+  )
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void LimitedObjectRef() #OBJREF: {} {
+	LimitedInvokeExpr() DOT() 
+	( ( LOOKAHEAD (FieldExpression() DOT()) FieldExpression() DOT() )* 
+	FieldExpression() )
+{jjtThis.visitor = visitorTypes.objrefVisitor;}
+}
+
+void LimitedInvokeExpr() #INVOKE(>1): {} {
+	SingleItem() (Arguments() | ArraySuffix())*
+{jjtThis.visitor = visitorTypes.invokeVisitor;}
+}
+
+//========================================================================
+// Expressions.
+//========================================================================
+
+//====
+// Cascade down for precedence, low to high.
+// Higher precedence operators bind more tightly, i.e., are executed first.
+//====
+
+void AndExpression() #OPERATION(>1): {} {
+	QmarkExpression() (LOOKAHEAD(AND()) AND() QmarkExpression())*
+{jjtThis.visitor = visitorTypes.productVisitor;}
+}
+
+//====
+// Iterative production is left-associative.
+//====
+void QmarkExpression() #OPERATION(>1): {} {
+	Assignment() (LOOKAHEAD(QMARK()) QMARK() Assignment())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+//====
+// Recursive production is right-associative.
+//====
+void Assignment() #OPERATION(>1): {} {
+	FirstClassExpression() [LOOKAHEAD(AssignOperator() | AugmentedAssign())
+		(AssignOperator() | AugmentedAssign()) Assignment()]
+{jjtThis.visitor = visitorTypes.assignVisitor;}
+}
+//====
+// Transform must detect Lhs of assign.
+//====
+
+void FirstClassExpression() #OPERATION(>1): {} {
+	[FirstClassOperators()] PmatchExpression()
+{jjtThis.visitor = visitorTypes.unaryOperationVisitor;}
+}
+
+void PmatchExpression() #OPERATION(>1): {} {
+	ToExpression() (LOOKAHEAD(PmatchOperators())
+		PmatchOperators() ToExpression())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+//====
+// Operations are only allowed to the left of a statement, e.g., if.
+// Anything to the right of a statement will bind together.
+//====
+
+void ToExpression() #OPERATION(>1): {} {
+	PorExpression() [LOOKAHEAD(TO()) TO() PorExpression()
+		[LOOKAHEAD(BY()) BY() PorExpression()]]
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+void PorExpression() #OPERATION(>1): {} {
+	BarExpression() (LOOKAHEAD(PorOperators())
+		PorOperators() BarExpression())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+void BarExpression() #OPERATION(>1): {} {
+	CompareExpression() (LOOKAHEAD(BarOperators())
+		BarOperators() CompareExpression())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+void CompareExpression() #OPERATION(>1): {} {
+	ConcatExpression() (LOOKAHEAD(CompareOperators())
+		CompareOperators() ConcatExpression())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+void ConcatExpression() #OPERATION(>1): {} {
+	AddExpression() (LOOKAHEAD(ConcatOperators())
+		ConcatOperators() AddExpression())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+void AddExpression() #OPERATION(>1): {} {
+	MultiplyExpression() (LOOKAHEAD(AddOperators())
+		AddOperators() MultiplyExpression())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+void MultiplyExpression() #OPERATION(>1): {} {
+	CaretExpression() (LOOKAHEAD(MultiplyOperators())
+		MultiplyOperators() CaretExpression())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+//====
+// CaretExpression is right associative via right recursion.
+//====
+void CaretExpression() #OPERATION(>1): {} {
+	BangExpression() [LOOKAHEAD(CARET()) CARET() CaretExpression()]
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+void BangExpression() #OPERATION(>1): {} {
+	UnaryExpression() (LOOKAHEAD(BangOperators())
+		BangOperators() UnaryExpression())*
+{jjtThis.visitor = visitorTypes.operationVisitor;}
+}
+
+//====
+// UnaryExpression is right associative via right recursion.
+//====
+void UnaryExpression() #OPERATION(>1): {} {
+      (	LOOKAHEAD(StatementLookahead()) StatementExpression()
+      |	LOOKAHEAD(UnaryOperators() | UnaryBooleanOperators() | NOT())
+	  (UnaryOperators() | UnaryBooleanOperators() | NOT()) UnaryExpression()
+      ) {jjtThis.visitor = visitorTypes.unaryOperationVisitor;}
+      | PrimaryExpression()
+}
+//====
+// Transform must detect that unary Not applies to boundedExpression()
+//====
+
+//========================================================================
+// Primary expressions.
+//========================================================================
+
+void PrimaryExpression() #void: {} {		// #PRIMARY
+   (   LOOKAHEAD (LPAREN() Type() RPAREN() PrimaryExpressionNoCast())
+		CastExpression()
+     | LOOKAHEAD (LPAREN() Type() RPAREN() AnnotationType() BigLiteral())
+		CastEmbeddedScript()
+     | PrimaryExpressionNoCast()
+   )
+}
+
+void CastExpression() #EXPRESSION: {} {
+   Cast() PrimaryExpressionNoCast()
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void CastEmbeddedScript() #EXPRESSION: {} {
+   Cast() EmbeddedScript()
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void Cast() #CAST: {} {
+   LPAREN() Type() RPAREN()
+{jjtThis.visitor = visitorTypes.castVisitor;}
+}
+
+void PrimaryExpressionNoCast() #void: {} {	// #PRIMARY
+   (  LOOKAHEAD (LPAREN() COLON() | LPAREN() Identifier() IN())
+	IteratorExpression()
+    | LOOKAHEAD(InvokeExpr() DOT()) ObjectRef()
+    | InvokeExpr()	// includes invoke as well as standalone atom and group
+   )
+}
+
+void InvokeExpr() #INVOKE(>1): {} {
+	ObjectExpr() (Arguments() | ArraySuffix())*
+{jjtThis.visitor = visitorTypes.invokeVisitor;}
+}
+//====
+// InvokeExpr includes invoke as well as standalone atom and group.
+//====
+
+void ObjectExpr() #void: {} {		// #ATOM
+	( LOOKAHEAD (NEW() Type()) AllocationExpr()
+	| LOOKAHEAD (MethodRef()) MethodRefAsAtom()
+	| SingleItem()
+	| GroupExpr() )
+//====
+// NOTE: in unigram.y, only "case" statement can be lhs of invoke or dot,
+//	since lhs will be snarfed by other control/operators ending with expr.
+//	Thus, ObjectExpr() is only possible lhs, not general Expr().
+//====
+}
+
+void ObjectRef() #OBJREF: {} {
+	InvokeExpr() DOT() 
+	( ( LOOKAHEAD (FieldExpression() DOT()) FieldExpression() DOT() )* 
+	FieldExpression() ) 	// OR: Field(), with InvokeObjectRef outermost
+{jjtThis.visitor = visitorTypes.objrefVisitor;}
+}
+
+void FieldExpression() #INVOKE(>1): {} {	// #ATOM
+	Field() (Arguments() | ArraySuffix())*
+{jjtThis.visitor = visitorTypes.invokeVisitor;}
+}
+//====
+// ObjectExpr and FieldExpression in Java 8 use: [Arguments()] (ArraySuffix())*
+//====
+
+void Field() #ATOM: {} {
+      (	
+	RelaxedIdentifier()
+      ) {jjtThis.visitor = visitorTypes.atomVisitor;}
+}
+
+void AllocationExpr() #ALLOCATION: {} {	// #OPERATION
+	NEW() Type()
+{jjtThis.visitor = visitorTypes.allocationVisitor;}
+}
+
+void Arguments() #void: {} {		// #INVOKE
+  (	Invoke() | CoExprInvoke() | SuperInvoke()
+  ) 
+}
+
+void Invoke() #void: {} {
+	LOOKAHEAD (LPAREN() RPAREN())
+	LPAREN_EMPTY() AllEmptyList() RPAREN()
+      | LPAREN() ExprList() RPAREN()
+//====
+// Faster than: LPAREN() [ExprList()] RPAREN()
+//====
+}
+
+void CoExprInvoke() #void: {} {
+	LOOKAHEAD (LBRACE_SET() RBRACE_SET())
+	LBRACE_EMPTYSET() AllEmptyList() RBRACE_SET()
+      |	LBRACE_SET() ExprList() RBRACE_SET()
+}
+
+void SuperInvoke() #DOLLAR: {} {
+	DOLLAR() 
+	(INITIALLY() | (Identifier() [DOT() Identifier() | INITIALLY()]))
+	( LOOKAHEAD ( LPAREN() RPAREN() )
+	  LPAREN_EMPTY() AllEmptyList() RPAREN()
+        | LPAREN() ExprList() RPAREN() )
+{jjtThis.visitor = visitorTypes.dollarVisitor;}
+}
+
+void ArraySuffix() #void: {} {
+	LOOKAHEAD(LBRACKET_INDEX() RBRACKET_INDEX())
+	LBRACKET_EMPTYINDEX() AllEmptyList() RBRACKET_INDEX()
+      | LBRACKET_INDEX() 
+	( LOOKAHEAD (Expr() (COLON() | PCOLON() | MCOLON()))
+	  RangeExpr()
+	| ExprList() )
+	RBRACKET_INDEX()
+}
+
+void RangeExpr() #SLICE: {} {
+	Expr() (COLON() | PCOLON() | MCOLON()) Expr()
+{jjtThis.visitor = visitorTypes.sliceVisitor;}
+}
+
+void SingleItem() #ATOM: {} {
+      ( 
+	// LOOKAHEAD (Identifier() COLONCOLON() | COLONCOLON()) MethodRef() 
+	// LOOKAHEAD (MethodRef()) MethodRef()
+	// | Identifier()
+      Identifier()
+      | AndKeyword()
+      | Literal()
+      )
+{jjtThis.visitor = visitorTypes.atomVisitor;}
+}
+
+void GroupExpr() #GROUP: {} {
+      (
+   	LOOKAHEAD ( LPAREN() [ParamList()] RPAREN() ClosureOperator() )
+	  Closure()
+	| LOOKAHEAD ( LPAREN() )
+	  Tuple()
+	| LOOKAHEAD ( LBRACKET() (COLON() | Expr() COLON()) )
+	  Map()
+	| LOOKAHEAD ( LBRACKET() COMPREND() )
+	  EmptyMapComprEnd()
+	| LOOKAHEAD ( LBRACE() (COMMA() | Expr() COMMA()) )
+	  Set()
+   	| LOOKAHEAD ( LBRACE() )
+	  Block()
+	| LOOKAHEAD ( LBRACKET() (BoundedExpr() COLON()) | (DEFAULT() COLON()) )
+	  CaseMap()
+	| LOOKAHEAD ( LBRACKET() )
+	  List()
+	| LOOKAHEAD ( COMPR() RBRACKET() )
+	  EmptyMapCompr()
+	| LOOKAHEAD ( COMPR() )
+	  ListComprehension()
+      ) {jjtThis.visitor = visitorTypes.groupVisitor;}
+//==== OLD VERSION of lambda expression: {(args) -> expr}
+//   	LOOKAHEAD ( LBRACE() LPAREN() [ParamList()] RPAREN() ClosureOperator() )
+//	  Closure() | 
+//==== Set {,}
+//	LOOKAHEAD ( LBRACE() (COMMA() | Expr() COMMA()) )
+//	  Set() |
+//====
+}
+
+void IteratorExpression() #void: {} {
+	InIterator()
+}
+
+void ArgList() #void: {} {	// Synonym for ExprList()
+	ExprList()
+}
+
+void ExprList() #void: {} {
+	( LOOKAHEAD (COMMA()) InnerEmptyList()		// XX: COMMA()
+	  | Nothing()
+	)
+	( LOOKAHEAD (Expr()) Expr()
+	  | Nothing()
+	)
+	( LOOKAHEAD (COMMA() Expr()) COMMA() Expr()
+	  | COMMA() InnerEmptyList()
+	)*
+}
+
+//====
+// Exprlist is to be non-empty, and ends with an expression or innerEmpty.
+//	If it would be empty, test and use allEmpty instead.
+// Invariant: (AllEmpty) or (x,TrailingEmpty) or (x,y) where x may be Empty
+//====
+// We pad leading ",", trailing ",", and ",," with Empty().
+// We indicate an empty ExprList with AllEmpty().
+//====
+
+void RightDelim() #void: {} {
+	RPAREN() | RBRACE() | RBRACKET()
+}
+
+void Nothing() #void: {} {
+  {}
+}
+
+void MethodRef() #METHODREF: {} {	// Method Reference or Unicon Packageref
+  (	LOOKAHEAD (Identifier() DOT()) DotNameAsAtom() COLONCOLON() RelaxedIdentifier()
+	| LOOKAHEAD (Identifier()) SingleDotNameAsAtom() COLONCOLON() RelaxedIdentifier()
+	| LOOKAHEAD (CastDotNameAsAtom() COLONCOLON()) CastDotNameAsAtom() COLONCOLON() RelaxedIdentifier()
+	| EmptyDotName() COLONCOLON() RelaxedIdentifier()
+  ) {jjtThis.visitor = visitorTypes.methodrefVisitor;}
+}
+//====
+// Methodref: x.y::f | ((Cast) x).y::f(z)
+//====
+
+void CastDotNameAsAtom() #DOTNAME: {} {
+	CastInParen() ( LOOKAHEAD(DOT()) DOT() Field() )*
+{jjtThis.visitor = visitorTypes.dotnameVisitor;}
+}
+
+void CastInParen() #GROUP: {} {
+	LPAREN() SimpleCastExpression() RPAREN()	// CastExpression
+{jjtThis.visitor = visitorTypes.groupVisitor;}
+}
+
+void SimpleCastExpression() #EXPRESSION: {} {
+	Cast() IdentifierAsAtom()
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void DotNameAsAtom() #DOTNAME: {} {
+	IdentifierAsAtom() ( LOOKAHEAD(DOT()) DOT() Field() )+ 
+{jjtThis.visitor = visitorTypes.dotnameVisitor;}
+}
+
+void SingleDotNameAsAtom() #DOTNAME: {} {
+	IdentifierAsAtom()
+{jjtThis.visitor = visitorTypes.dotnameVisitor;}
+}
+
+void IdentifierAsAtom() #ATOM: {} {
+	Identifier()
+{jjtThis.visitor = visitorTypes.atomVisitor;}
+}
+
+void MethodRefAsAtom() #ATOM: {} {
+	MethodRef()
+{jjtThis.visitor = visitorTypes.atomVisitor;}
+}
+
+//========================================================================
+// Tuple, map, list, and set.
+//========================================================================
+
+void Tuple() #void: {} {
+	LOOKAHEAD(LPAREN() RPAREN())
+	LPAREN_EMPTY() AllEmptyList() RPAREN()
+      |	LPAREN() ExprList() RPAREN()
+}
+
+void List() #void: {} {
+	LOOKAHEAD( LBRACKET() RBRACKET() )
+	LBRACKET_EMPTYLIST() AllEmptyList() RBRACKET()
+      | LBRACKET() ExprList() RBRACKET()
+}
+
+void CaseMap() #void: {} {
+	LBRACKET_MAP() CaseList() RBRACKET_MAP()
+}
+
+void Map() #void: {} {
+	LOOKAHEAD( LBRACKET() COLON() RBRACKET() )
+	LBRACKET_EMPTYMAP() COLON() RBRACKET()
+      | LBRACKET_MAP() MapList() RBRACKET_MAP()
+}
+
+void MapList() #void: {} {	// #ENUM
+	KeyColonValue() (COMMA() KeyColonValue())*
+}
+
+void KeyColonValue() #KEYVALUE: {} {
+	Expr() COLON() Expr()
+{jjtThis.visitor = visitorTypes.keyvalueVisitor;}
+}
+
+void EmptyMapCompr() #void: {} {
+	COMPR_EMPTYMAP() RBRACKET_MAP()
+}
+
+void EmptyMapComprEnd() #void: {} {
+	LBRACKET_EMPTYMAP() COMPREND()
+}
+
+void Set() #void: {} {
+	LBRACE_SET() ExprList() RBRACE_SET()
+}
+
+void ListComprehension() #void: {} {
+	LOOKAHEAD( COMPR() COMPREND() )
+	COMPR_EMPTY() AllEmptyList() COMPREND()
+      | COMPR() Expr() COMPREND()
+}
+
+//========================================================================
+// Iterators.
+//========================================================================
+
+void InIterator() #ITERATOR: {} {
+  (	LOOKAHEAD( LPAREN() COLON() )
+	LPAREN() COLON() IN() Expr() RPAREN()
+      | LPAREN() IdentifierAsExpr() IN() Expr() RPAREN()
+  ) {jjtThis.visitor = visitorTypes.iteratorVisitor;}
+}
+
+void IdentifierAsExpr() #EXPRESSION: {} {
+	IdentifierAsAtom()
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void LiteralAsAtom() #ATOM: {} {
+	Literal()
+{jjtThis.visitor = visitorTypes.atomVisitor;}
+}
+
+void BigLiteralAsAtom() #ATOM: {} {
+	BigLiteral()
+{jjtThis.visitor = visitorTypes.atomVisitor;}
+}
+
+void BigLiteralAsExpr() #EXPRESSION: {} {
+	BigLiteralAsAtom()
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+//========================================================================
+// Annotations.
+//========================================================================
+
+void AnnotationType() #void: {} {
+	Annotation()
+}
+
+void AnnotationComment() #ANNOTATIONCOMMENT: {} {
+  (	ANNOTATION_COMMENT_PREFIX()
+	SLASH() XmlTag() GT()
+      | XmlTag() [SpacedNamedArgList()] [SLASH()] GT()
+  ) {jjtThis.visitor = visitorTypes.annotationCommentVisitor;}
+}
+
+void Annotation() #ANNOTATION: {} {
+  (	LOOKAHEAD( ANNOTATION() SLASH() )
+	ANNOTATION() SLASH() XmlTag() GT()
+      | LOOKAHEAD (ANNOTATION() XmlTag() LPAREN())
+	ANNOTATION() XmlTag() LPAREN() [
+		LOOKAHEAD(NamedArgList()) NamedArgList() | AnnotationExpr() ]
+		RPAREN() [SLASH()] GT()
+      | ANNOTATION() XmlTag() [SpacedNamedArgList()] [SLASH()] GT()
+  ) {jjtThis.visitor = visitorTypes.annotationVisitor;}
+}
+
+void XmlTag() #QUALIFIED: {} {
+	RelaxedDotNameMaybe()
+	[LOOKAHEAD (COLON()) COLON() RelaxedDotNameMaybe() ]
+{jjtThis.visitor = visitorTypes.qualifiedVisitor;}
+}
+
+void RelaxedDotNameMaybe() #DOTNAME: {} {
+	RelaxedIdentifier() ( LOOKAHEAD(DOT()) DOT() RelaxedIdentifier() )*
+{jjtThis.visitor = visitorTypes.dotnameVisitor;}
+}
+
+void SpacedNamedArgList() #ENUM: {} {
+	NamedArg() (NamedArg())*
+{jjtThis.visitor = visitorTypes.enumerationVisitor;}
+}
+
+void NamedArgList() #ENUM: {} {
+	NamedArg() (COMMA() NamedArg())*
+{jjtThis.visitor = visitorTypes.enumerationVisitor;}
+}
+
+void NamedArg() #EXPRESSION: {} {
+	Identifier() EQUALS() AnnotationExpr()
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+void AnnotationExpr() #void: {} {
+	Expr()		// Identifier() | Literal()
+}
+
+void EmbeddedScript() #EXPRESSION: {} {
+	AnnotationType() BigLiteralAsExpr()
+	// AnnotationType() PlainExpression()
+{jjtThis.visitor = visitorTypes.expressionVisitor;}
+}
+
+//========================================================================
+// Grouped literals and keywords
+//========================================================================
+void Literal() #void: {} {
+	IntLiteral() | RealLiteral() | StringLiteral()
+	| CharLiteral() | BigLiteral()
+	| NullLiteral()
+}
+
+void AndKeyword() #ANDKEYWORD: {} {
+	AND() (Identifier() | Fail() | NullLiteral())
+{jjtThis.visitor = visitorTypes.andKeywordVisitor;}
+}
+
+/*************************************************************************
+ * TERMINALS START HERE
+ ************************************************************************/
+
+//========================================================================
+// Terminals: Reserved Words
+//========================================================================
+
+void ABSTRACT() #KEYWORD:
+{ Token t; }
+{ t = <ABSTRACT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void BREAK() #KEYWORD:
+{ Token t; }
+{ t = <BREAK> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void BY() #KEYWORD:
+{ Token t; }
+{ t = <BY> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void CASE() #KEYWORD:
+{ Token t; }
+{ t = <CASE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void CLASS() #KEYWORD:
+{ Token t; }
+{ t = <CLASS> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void CREATE() #KEYWORD:
+{ Token t; }
+{ t = <CREATE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void THREAD() #KEYWORD:
+{ Token t; }
+{ t = <THREAD> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void CRITICAL() #KEYWORD:
+{ Token t; }
+{ t = <CRITICAL> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void DEFAULT() #KEYWORD:
+{ Token t; }
+{ t = <DEFAULT_token> { jjtThis.setName(t.image);  jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void DO() #KEYWORD:
+{ Token t; }
+{ t = <DO> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void ELSE() #KEYWORD:
+{ Token t; }
+{ t = <ELSE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void END() #KEYWORD:
+{ Token t; }
+{ t = <END> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void EVERY() #KEYWORD:
+{ Token t; }
+{ t = <EVERY> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void FAIL() #KEYWORD:
+{ Token t; }
+{ t = <FAIL> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void GLOBAL() #KEYWORD:
+{ Token t; }
+{ t = <GLOBAL> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void IF() #KEYWORD:
+{ Token t; }
+{ t = <IF> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void IMPORT() #KEYWORD:
+{ Token t; }
+{ t = <IMPORT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void IN() #KEYWORD:
+{ Token t; }
+{ t = <IN> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void INITIAL() #KEYWORD:
+{ Token t; }
+{ t = <INITIAL> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void INITIALLY() #KEYWORD:
+{ Token t; }
+{ t = <INITIALLY> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void INVOCABLE() #KEYWORD:
+{ Token t; }
+{ t = <INVOCABLE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void LINK() #KEYWORD:
+{ Token t; }
+{ t = <LINK> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void LOCAL() #KEYWORD:
+{ Token t; }
+{ t = <LOCAL> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void METHOD() #KEYWORD:
+{ Token t; }
+{ t = <METHOD> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void NEW() #KEYWORD:
+{ Token t; }
+{ t = <NEW> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void NEXT() #KEYWORD:
+{ Token t; }
+{ t = <NEXT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void NOT() #KEYWORD:
+{ Token t; }
+{ t = <NOT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void OF() #KEYWORD:
+{ Token t; }
+{ t = <OF> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void PACKAGE() #KEYWORD:
+{ Token t; }
+{ t = <PACKAGE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void PROCEDURE() #KEYWORD:
+{ Token t; }
+{ t = <PROCEDURE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void RECORD() #KEYWORD:
+{ Token t; }
+{ t = <RECORD> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void REPEAT() #KEYWORD:
+{ Token t; }
+{ t = <REPEAT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void RETURN() #KEYWORD:
+{ Token t; }
+{ t = <RETURN> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void STATIC() #KEYWORD:
+{ Token t; }
+{ t = <STATIC> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void SUSPEND() #KEYWORD:
+{ Token t; }
+{ t = <SUSPEND> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void THEN() #KEYWORD:
+{ Token t; }
+{ t = <THEN> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void TO() #KEYWORD:
+{ Token t; }
+{ t = <TO> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void UNTIL() #KEYWORD:
+{ Token t; }
+{ t = <UNTIL> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+void WHILE() #KEYWORD:
+{ Token t; }
+{ t = <WHILE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.keywordVisitor;}
+}
+
+//========================================================================
+// Terminals: Delimiters
+//========================================================================
+
+void LPAREN() #TUPLE :
+{ Token t; }
+{ t = <LPAREN> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.tupleVisitor;}
+}
+
+void RPAREN() #CLOSETUPLE :
+{ Token t; }
+{ t = <RPAREN> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LBRACE() #BLOCK:
+{ Token t; }
+{ t = <LBRACE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.blockVisitor;}
+}
+
+void RBRACE() #CLOSEBLOCK:
+{ Token t; }
+{ t = <RBRACE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LBRACE_CLOSURE() #CLOSURE:
+{ Token t; }
+{ t = <LBRACE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closureVisitor;}
+}
+
+void RBRACE_CLOSURE() #ENDCLOSURE:
+{ Token t; }
+{ t = <RBRACE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LBRACE_SET() #SET:
+{ Token t; }
+{ t = <LBRACE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.setVisitor;}
+}
+
+void RBRACE_SET() #CLOSESET:
+{ Token t; }
+{ t = <RBRACE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LBRACKET() #LIST:
+{ Token t; }
+{ t = <LBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.listVisitor;}
+}
+
+void RBRACKET() #CLOSELIST:
+{ Token t; }
+{ t = <RBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LBRACKET_INDEX() #INDEX:
+{ Token t; }
+{ t = <LBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.subscriptVisitor;}
+}
+
+void RBRACKET_INDEX() #CLOSEINDEX:
+{ Token t; }
+{ t = <RBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LBRACKET_MAP() #MAP:
+{ Token t; }
+{ t = <LBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.mapVisitor;}
+}
+
+void RBRACKET_MAP() #CLOSEMAP:
+{ Token t; }
+{ t = <RBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LBRACKET_TYPE() #INDEX:
+{ Token t; }
+{ t = <LBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.subscriptVisitor;}
+}
+
+void RBRACKET_TYPE() #CLOSEINDEX:
+{ Token t; }
+{ t = <RBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LANGLE_TUPLE() #TUPLE:
+{ Token t; }
+{ t = <LT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.angleVisitor;}
+}
+
+void RANGLE_TUPLE() #CLOSETUPLE:
+{ Token t; }
+{ t = <GT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void COMPR() #COMPREHENSION:
+{ Token t; }
+{ t = <COMPR> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.comprehensionVisitor;}
+}
+
+void COMPREND() #CLOSECOMPREHENSION:
+{ Token t; }
+{ t = <COMPREND> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.closeCollectionVisitor;}
+}
+
+void LPAREN_EMPTY() #TUPLE:
+{ Token t; }
+{ t = <LPAREN> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.emptyTupleVisitor;}
+}
+
+void LBRACE_EMPTYSET() #SET:
+{ Token t; }
+{ t = <LBRACE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.emptySetVisitor;}
+}
+
+void LBRACKET_EMPTYINDEX() #INDEX:
+{ Token t; }
+{ t = <LBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.emptySubscriptVisitor;}
+}
+
+void LBRACKET_EMPTYLIST() #LIST:
+{ Token t; }
+{ t = <LBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.emptyListVisitor;}
+}
+
+void LBRACKET_EMPTYMAP() #MAP:
+{ Token t; }
+{ t = <LBRACKET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.emptyMapVisitor;}
+}
+
+void COMPR_EMPTYMAP() #MAP:
+{ Token t; }
+{ t = <COMPR> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.emptyMapVisitor;}
+}
+
+void COMPR_EMPTY() #COMPREHENSION:
+{ Token t; }
+{ t = <COMPR> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.emptyComprehensionVisitor;}
+}
+
+void SEMICOL() #DELIMITER:
+{ Token t; }
+{ t = <SEMICOLON> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.delimiterVisitor;} 
+}
+
+void COLON() #DELIMITER:
+{ Token t; }
+{ t = <COLON> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.delimiterVisitor;}
+} 
+
+void COLONCOLON() #DELIMITER:
+{ Token t; }
+{ t = <COLONCOLON> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.delimiterVisitor;}
+} 
+
+void COMMA() #DELIMITER:
+{ Token t; }
+{ t = <COMMA> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.delimiterVisitor;}
+} 
+
+void DOT() #DELIMITER:
+{ Token t; }
+{ t = <DOT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.delimiterVisitor;}
+}
+
+void DOTDOTDOT() #DELIMITER:
+{ Token t; }
+{ t = <DOTDOTDOT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.delimiterVisitor;}
+}
+
+//========================================================================
+// Terminals: Operators
+//========================================================================
+
+void AND() #OPERATOR:
+{ Token t; }
+{ t = <AND> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void QMARK() #OPERATOR:
+{ Token t; }
+{ t = <QMARK> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void ASSIGN() #OPERATOR:
+{ Token t; }
+{ (t = <ASSIGN>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void AssignOperator() #OPERATOR:
+{ Token t; }
+{ (t = <ASSIGN> | t=<REVASSIGN> | t=<REVSWAP> | t=<SWAP>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void AugmentedAssign() #OPERATOR:
+{ Token t; }
+{ (t = <AUGMOD> | t=<AUGAND> | t=<AUGSTAR> | t=<AUGINTER> | t=<AUGPLUS> |
+	t=<AUGUNION> | t=<AUGMINUS> | t=<AUGDIFF> | t=<AUGSLASH> |
+	t=<AUGNMLT> |
+	t=<AUGSLT> | t=<AUGSLE> | t=<AUGNMLE> | t=<AUGNMEQ> | t=<AUGSEQ> |
+	t=<AUGEQUIV> | t=<AUGNMGT> | t=<AUGNMGE> | t=<AUGSGT> | t=<AUGSGE> |
+	t=<AUGQMARK> | t=<AUGAT> | t=<AUGCARET> | t=<AUGCONCAT> |
+	t=<AUGNEQUIV> |
+	t=<AUGSNE> | t=<AUGNMNE> | t=<AUGLCONCAT>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.augmentedVisitor;}
+}
+
+void PmatchOperators() #OPERATOR:
+{ Token t; }
+{ t = <PMATCH>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+}
+
+void PorOperators() #OPERATOR:
+{ Token t; }
+{ t = <POR>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void BarOperators() #OPERATOR:
+{ Token t; }
+{ (t = <BAR> | t=<PAND>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void ClosureOperator() #OPERATOR:
+{ Token t; }
+{ (t = <PASSNONMATCH>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+}
+
+void CompareOperators() #OPERATOR:
+{ Token t; }
+{ (t = <GT> | t=<LT> | t=<EQ> | t=<LE> | t=<GE> | t=<EQUALS> | t=<LSHIFT> |
+	t=<RSHIFT> |
+	t=<SLE> | t=<EQUIV> | t=<SGE> | t=<NMNE> | t=<SNE> | t=<NEQUIV> |
+	t=<PIMDASSN> | t=<PASSNONMATCH>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorBooleanVisitor;}
+} 
+
+void ConcatOperators() #OPERATOR:
+{ Token t; }
+{ (t = <CONCAT> | t=<LCONCAT>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void AddOperators() #OPERATOR:
+{ Token t; }
+{ (t = <PLUS> | t=<MINUS> | t=<INCR> | t=<DECR>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void MultiplyOperators() #OPERATOR:
+{ Token t; }
+{ (t = <STAR> | t=<SLASH> | t=<PERCENT> | t=<INTER>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void CARET() #OPERATOR:		// Caret (Hat)
+{ Token t; }
+{ t = <CARET> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void BangOperators() #OPERATOR:
+{ Token t; }
+{ (t = <BANG> | t=<BACKSLASH> | t=<AT> | t=<SND> | t=<SNDBK>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void FirstClassOperators() #OPERATOR:
+{ Token t; }
+{ (t = <FIRSTCLASS> | t=<FUTURE> | t=<PIPE> | t=<COEXPR> | t=<PARALLEL>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void UnaryOperators() #OPERATOR:
+{ Token t; }
+{ (	t=<TILDE> | t=<PSETCUR> |
+	t=<AT> | t=<BAR> |
+	t=<CONCAT> | t=<LCONCAT> | t=<DOT> | t=<BANG> |
+	t=<DECR> | t=<PLUS> | t=<STAR> | t=<CARET> |
+	t=<INTER> | t=<MINUS> | t=<EQUALS> | t=<NMNE> | t=<EQ> |
+	t=<RCV> | t=<RCVBK> |
+	t=<SNE> | t=<EQUIV> | t=<INCR> | t=<QMARK> | t=<NEQUIV>
+  )
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void UnaryBooleanOperators() #OPERATOR:
+{ Token t; }
+{ (t = <SLASH> | t=<BACKSLASH>
+   )
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorBooleanVisitor;}
+} 
+
+void PCOLON() #OPERATOR:	// Slicing
+{ Token t; }
+{ t = <PCOLON> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void MCOLON() #OPERATOR:	// Slicing
+{ Token t; }
+{ t = <MCOLON> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void DOLLAR() #OPERATOR:
+{ Token t; }
+{ t = <DOLLAR> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void AT() #OPERATOR:		// Annotation and qualified name operators
+{ Token t; }
+{ t = <AT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void LT() #OPERATOR:
+{ Token t; }
+{ t = <LT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void GT() #OPERATOR:
+{ Token t; }
+{ t = <GT> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void SLASH() #OPERATOR:
+{ Token t; }
+{ t = <SLASH> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void STAR() #OPERATOR:
+{ Token t; }
+{ t = <STAR> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+void EQUALS() #OPERATOR:
+{ Token t; }
+{ t = <EQUALS> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorBooleanVisitor;}
+} 
+
+void PUNEVAL() #OPERATOR:
+{ Token t; }
+{ t = <BACKQUOTE> { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.operatorVisitor;}
+} 
+
+//========================================================================
+// Terminals: Identifiers
+//========================================================================
+
+void Identifier() #IDENTIFIER:		// Identifier including some keywords
+{ Token t; }
+{ (t = <IDENTIFIER> | t=<NEW> | t=<IN>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.identifierVisitor;}
+}
+
+void StrictIdentifier() #IDENTIFIER:	// Identifier exclusive of keywords
+{ Token t; }
+{ (t = <IDENTIFIER>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.identifierVisitor;}
+}
+
+void RelaxedIdentifier() #IDENTIFIER:	// Identifier with keywords allowed after dot
+{ Token t; }
+{ (t = <IDENTIFIER> | t=<IN> | t=<NEXT> | t=<THREAD> | t=<INITIALLY>)
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.identifierVisitor;}
+}
+
+//========================================================================
+// Terminals: Literals
+//========================================================================
+
+void BigLiteral() #BIGLITERAL:
+{ Token t; }
+{ t = <BIG_LITERAL>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.bigLiteralVisitor;}
+}
+
+void IntLiteral() #LITERAL:
+{ Token t; }
+{ t = <INTEGER_LITERAL>
+  { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.integerVisitor;}
+| t = <RADIX_LITERAL>
+  { jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.radixVisitor;}
+} 
+
+void RealLiteral() #LITERAL:
+{ Token t; }
+{ t = <REAL_LITERAL>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.realVisitor;}
+} 
+
+void CharLiteral() #QUOTE:
+{ Token t; }
+{ t = <SINGLE_QUOTE_LITERAL>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.singleQuoteVisitor;}
+} 
+
+void StringLiteral() #QUOTE:
+{ Token t; }
+{ t = <STRING_LITERAL>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.quoteVisitor;}
+} 
+
+void NullLiteral() #LITERAL:
+{ Token t; }
+{ t = <NULL_LITERAL>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.wordVisitor;}
+} 
+
+//========================================================================
+// Terminals: Annotations
+//========================================================================
+
+void ANNOTATION() #DELIMITER:
+{ Token t; }
+{ t = <ANNOTATION>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.delimiterVisitor;}
+}
+
+void ANNOTATION_COMMENT_PREFIX() #DELIMITER:
+{ Token t; }
+{ t = <ANNOTATION_COMMENT_PREFIX>
+{ jjtThis.setName(t.image); jjtThis.visitor = visitorTypes.delimiterVisitor;}
+}
+
+//==== END OF FILE

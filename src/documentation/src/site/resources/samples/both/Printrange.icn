@@ -1,0 +1,53 @@
+#====
+# Printrange.
+# USAGE: x:=Printrange(1); x.printRange(13)
+#====
+$ifdef JUNICON
+package edu.uidaho.junicon.test.junicon;
+$endif
+
+class Printrange(lower)
+    method printRange(upto)
+        local i
+$ifdef JUNICON
+        every (i := Printrange().range(lower,upto)) do System.out::println(i)
+$else
+        every (i := Printrange().range(lower,upto)) do write(i)
+$endif
+    end
+
+    method range(from,bound)
+        local count
+        count := from
+        while (count <= bound) do { suspend count; count +:= 1 }
+    end
+
+    method main(args)
+	local x;
+	x  := + args[1];
+	lower := 1;
+	printRange(x);
+    end
+end
+
+#====
+# Test procedure : used only by unicon
+#====
+$ifndef JUNICON
+procedure run_printrange(args)
+  c := Printrange();
+  c.main(args);
+end
+$endif
+
+#====
+# Main procedure : used only by unicon
+#====
+$ifdef MAIN
+procedure main(args)
+  c := Printrange();
+  c.main(args);
+end
+$endif
+
+#==== END OF FILE

@@ -1,0 +1,311 @@
+<?xml version="1.0"?>
+
+<!-- =====================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+====================================================================== -->
+	
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+		      http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- ================================================ -->
+  <!--            Project identity                      -->
+  <!-- ================================================ -->
+  <groupId>edu.uidaho.junicon</groupId>
+  <artifactId>documentation</artifactId>
+  <packaging>pom</packaging>
+  <name>Documentation</name>
+
+  <!-- ================================================ -->
+  <!--            Parent module		                -->
+  <!-- ================================================ -->
+  <parent>
+    <groupId>edu.uidaho.junicon</groupId>
+    <artifactId>master</artifactId>
+    <version>1.8.4</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <!-- ================================================ -->
+  <!--            Properties                            -->
+  <!-- ================================================ -->
+  <properties>
+    <source.basedir>../source</source.basedir>
+    <source.interpreter.build>${source.basedir}/interpreter/target</source.interpreter.build>
+    <source.runtime.build>${source.basedir}/runtime/target</source.runtime.build>
+    <source.groovy.build>${source.basedir}/groovy/target</source.groovy.build>
+    <source.interpreter.java>${source.basedir}/interpreter/src/main/java</source.interpreter.java>
+    <source.runtime.java>${source.basedir}/runtime/src/main/java</source.runtime.java>
+    <source.groovy.java>${source.basedir}/groovy/src/main/java</source.groovy.java>
+    <source.jjtree>${source.interpreter.build}/generated-sources/jjtree</source.jjtree>
+    <source.javacc>${source.interpreter.build}/generated-sources/javacc</source.javacc>
+  </properties>
+
+  <!-- ================================================ -->
+  <!--            Dependencies                          -->
+  <!-- ================================================ -->
+  <dependencies>
+    <!-- =================================== -->
+    <!--	Project dependencies         -->
+    <!-- =================================== -->
+
+    <!-- =================================== -->
+    <!--	Other compile dependencies   -->
+    <!-- =================================== -->
+    <dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-beans</artifactId>
+    </dependency>
+    <dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-context</artifactId>
+    </dependency>
+    <dependency>
+	<groupId>org.codehaus.groovy</groupId>
+	<artifactId>groovy-all</artifactId>
+    </dependency>
+  </dependencies>
+
+  <!-- ================================================ -->
+  <!--            Build                                 -->
+  <!-- ================================================ -->
+  <build>
+    <plugins>
+      <!-- ================================================ -->
+      <!--            Site				    -->
+      <!-- ================================================ -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${maven.site.plugin.version}</version>
+        <configuration>
+	  <skip>false</skip>
+	  <skipDeploy>false</skipDeploy>
+	  <generateProjectInfo>true</generateProjectInfo>
+	  <generateReports>true</generateReports>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- ================================================ -->
+  <!--            Reporting (mvn site)                  -->
+  <!-- ================================================ -->
+  <reporting>
+    <plugins>
+	<!-- ===================================================== -->
+	<!--            Project info reports			   -->
+	<!-- ===================================================== -->
+	<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-project-info-reports-plugin</artifactId>
+            <version>${maven.project.info.reports.plugin.version}</version>
+            <configuration>
+		<skip>false</skip>
+                <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+            </configuration>
+	    <reportSets>
+		<reportSet>
+		  <reports>
+			<!--
+			<report>index</report>
+			-->
+			<report>dependencies</report>
+			<report>project-team</report>
+			<report>mailing-list</report>
+			<report>cim</report>
+			<report>issue-tracking</report>
+			<report>license</report>
+			<report>scm</report>
+		  </reports>
+		</reportSet>
+	    </reportSets>
+	</plugin>
+	<plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-changes-plugin</artifactId>
+	    <version>${maven.changes.plugin.version}</version>
+	    <reportSets>
+		<reportSet>
+		  <reports>
+			<report>changes-report</report>
+		  </reports>
+		</reportSet>
+	    </reportSets>
+	</plugin>
+	<!--
+	<plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-changelog-plugin</artifactId>
+	    <version>${maven.changelog.plugin.version}</version>
+	</plugin>
+	-->
+
+	<!-- ===================================================== -->
+	<!--            Jjdoc					   -->
+	<!-- ===================================================== -->
+	<plugin>
+	    <groupId>org.codehaus.mojo</groupId>
+	    <artifactId>javacc-maven-plugin</artifactId>
+	    <version>${javacc.plugin.version}</version>
+	    <configuration>
+	      <sourceDirectories>
+		<sourceDirectory>${source.jjtree}</sourceDirectory>
+	      </sourceDirectories>
+	    </configuration>
+	</plugin>
+
+	<!-- ===================================================== -->
+	<!--            Javadoc					   -->
+	<!-- ===================================================== -->
+	<plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadoc.plugin.version}</version>
+	    <reportSets>
+		<reportSet>
+		  <reports>
+			<report>javadoc-no-fork</report>
+			<!--
+			<report>test-javadoc-no-fork</report>
+			-->
+		  </reports>
+		</reportSet>
+	    </reportSets>
+	<configuration>
+	  <skip>false</skip>
+	  <!--
+	  <includeDependencySources>true</includeDependencySources>
+	  <dependencySourceIncludes>
+		<dependencySourceInclude>${project.groupId}:junicon:*:*</dependencySourceInclude>
+	  </dependencySourceIncludes>
+	  <dependencySourceExcludes>
+		<dependencySourceExclude>${project.groupId}:test:*:*</dependencySourceExclude>
+	  </dependencySourceExcludes>
+	  -->
+	  <sourcepath>${source.interpreter.java};${source.runtime.java};${source.groovy.java};${source.javacc};${source.jjtree}</sourcepath>
+	  <subpackages>.</subpackages>
+	  <source>${jdk.version}</source>
+	  <use>true</use>
+	  <show>public</show>
+	  <author>false</author>
+	  <version>true</version>
+	  <quiet>true</quiet>
+	  <windowtitle>${doc.project.name} ${project.version} API</windowtitle>
+	  <failOnError>false</failOnError>
+	  <additionalparam>-breakiterator -Xdoclint:none</additionalparam>
+	  <!--
+	  <tags>
+	    <tag>
+		<name>static.safe</name>
+		<placement>a</placement>
+		<head>Static safe.</head>
+	    </tag>
+	    <tag>
+		<name>thread.Safe</name>
+		<placement>a</placement>
+		<head>Thread safe.</head>
+	    </tag>
+	  </tags>
+	  -->
+	  <groups>
+	    <group>
+		<title>Transformational interpreter</title>
+		<packages>${project.groupId}.interpreter.*</packages>
+	    </group>
+	    <group>
+		<title>Grammars</title>
+		<packages>${project.groupId}.grammars.*</packages>
+	    </group>
+	    <group>
+		<title>Substrates, language specific sub-interpreters</title>
+		<packages>${project.groupId}.substrates.*</packages>
+	    </group>
+	    <group>
+		<title>Runtime support</title>
+		<packages>${project.groupId}.runtime.*</packages>
+	    </group>
+	    <group>
+		<title>Transform support</title>
+		<packages>${project.groupId}.support.*</packages>
+	    </group>
+	  </groups>
+	  <excludePackageNames>*.save:*.backup:*.unused</excludePackageNames>
+	  <sourceFileExcludes>
+    	    <sourceFileExclude>**/save/**</sourceFileExclude>
+	    <sourceFileExclude>**/backup/**</sourceFileExclude>
+	    <sourceFileExclude>**/unused/**</sourceFileExclude>
+	  </sourceFileExcludes>
+	  <doctitle>${doc.project.name} ${project.version} API</doctitle>
+	  <header><![CDATA[<b>${doc.project.name} ${project.version} API</b>]]></header>
+	  <footer><![CDATA[<b>${doc.project.name} ${project.version} API</b>]]></footer>
+	  <top></top>
+	  <bottom>
+<![CDATA[
+<font size='-1'> <B>
+Copyright &copy; {currentYear} ${owner}.
+&nbsp;
+All Rights Reserved.
+</B> </font>
+<BR>
+<TABLE cellspacing="0" cellpadding="4" border="1"><TR><TD><font size='-4'>
+<U> <B> License</B> </U>
+<BR>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions 
+are met:
+<BR>
+1. Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer. 
+<BR>
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution. 
+<BR>
+This software is provided by the copyright holders and contributors "as is"
+and any express or implied warranties, including, but not limited to, the
+implied warranties of merchantability and fitness for a particular purpose
+are disclaimed. In no event shall the copyright holder or contributors be
+liable for any direct, indirect, incidental, special, exemplary, or
+consequential damages (including, but not limited to, procurement of
+substitute goods or services; loss of use, data, or profits; or business
+interruption) however caused and on any theory of liability, whether in
+contract, strict liability, or tort (including negligence or otherwise)
+arising in any way out of the use of this software, even if advised of the
+possibility of such damage.
+</font></TD></TR></TABLE>
+<BR>
+]]>
+	  </bottom>
+	</configuration>
+      </plugin>
+
+    </plugins>
+  </reporting>
+
+</project>

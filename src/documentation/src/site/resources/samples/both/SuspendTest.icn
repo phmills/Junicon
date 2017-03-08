@@ -1,0 +1,50 @@
+#====
+# SuspendTest.
+# USAGE: x:=SuspendTest(1); x.rangeEvery(13)
+#====
+$ifdef JUNICON
+package edu.uidaho.junicon.test.junicon;
+$endif
+
+class SuspendTest(lower)
+    method rangeEvery(upto)
+        local i
+	local j
+        every (i := SuspendTest().range(lower,upto)) do j:=i
+    end
+
+    method range(from,bound)
+        local count
+        count := from
+        while (count <= bound) do { suspend count; count +:= 1 }
+    end
+
+    method main(args)
+	local x;
+	x  := + args[1];
+	lower := 1;
+	rangeEvery(x);
+    end
+end
+
+#====
+# Test procedure : used only by unicon
+#====
+$ifndef JUNICON
+procedure run_suspendtest(args)
+  c := SuspendTest();
+  c.main(args);
+end
+$endif
+
+#====
+# Main procedure : used only by unicon
+#====
+$ifdef MAIN
+procedure main(args)
+  c := SuspendTest();
+  c.main(args);
+end
+$endif
+
+#==== END OF FILE

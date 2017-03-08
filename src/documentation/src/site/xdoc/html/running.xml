@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- =========================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+========================================================================== -->
+
+<document
+  xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+    <properties>
+	<title>Running Junicon</title>
+    </properties>
+    <meta name="keyword" content="interpreter, java"/>
+    <body>
+      <section name="Running Junicon">
+
+	<subsection name="Running interactively">
+
+	<p>
+	To run Junicon interactively, just type or click on:
+	<source>
+		junicon
+	</source>
+	or
+	<source>
+		junicon.exe
+	</source>
+	for Linux/MacOS or Windows, respectively.
+	<br></br>
+	In interactive mode you can 
+	enter commands one line at a time to see the results.
+	Junicon is actually translating your Unicon programs to run on Groovy,
+	which is another interpreter written in Java,
+	so you can freely use any Java classes or Groovy features.
+	</p>
+
+      </subsection>
+      <subsection name="Running a script file">
+
+	<p>
+	To run a script file, type:
+	<source>
+		junicon MyScript.icn [arguments...]
+	</source>
+	or, to run the script but keep in interactive mode, type:
+	<source>
+		junicon -i MyScript.icn [arguments...]
+	</source>
+	</p>
+      </subsection>
+      </section>
+
+      <section name="Compiling Junicon">
+
+      <subsection name="To a standalone executable">
+
+	<p>
+	To compile a Junicon program to an standalone executable, type:
+	<source>
+		junicon -e MyScript.icn
+	</source>
+	To run the compiled program, just type:
+	<source>
+		MyScript [arguments...]
+	</source>
+	The executable will use JAVA_HOME as the location of Java if 
+	it is defined; otherwise the executable looks in PATH to find
+	the Java runtime, i.e., java or java.exe.
+	Alternatively, you can directly run the self-contained jar:
+	<source>
+		java -jar MyScript [arguments...]
+	</source>
+	</p>
+
+      </subsection>
+      <subsection name="To an executable without the runtime">
+
+	<p>
+	By default, compilation produces a self-contained executable jar. 
+	To produce an executable without the Junicon runtime bundled in, type:
+	<source>
+		junicon -e -R MyScript.icn
+	</source>
+	In this case the executable will look in the CLASSPATH environment
+	variable to find the Junicon runtime and any other dependencies.
+	</p>
+
+      </subsection>
+      <subsection name="To a jar file">
+
+	<p>
+	You can also just compile to a jar file, and not produce an executable:
+	<source>
+		junicon -C MyScript.icn
+	</source>
+	In this case
+	the jar file will not include the runtime or any other dependencies.
+	To extract a copy of the junicon runtime to add to the classpath, type:
+	<source>
+		junicon -Xr
+	</source>
+	</p>
+
+      </subsection>
+      <subsection name="To a Java file">
+
+	<p>
+	Lastly, to translate a program to Java, but not compile it, type:
+	<source>
+		junicon -T MyScript.icn
+	</source>
+	To see other command-line options, run:
+	<source>
+		junicon -h
+	</source>
+	</p>
+
+      </subsection>
+      </section>
+
+      <section name="Configuring Junicon">
+
+	<p>
+	<!-- One more thing. -->
+	You can customize the behavior of Junicon by
+	editing its startup files.
+	Normally, junicon uses the startup files bundled into
+	its self-contained executable.
+	To modify its configuration, first extract the startup files:
+	<source>
+		junicon -Xc
+	</source>
+	which extracts them to a config directory.
+	After modification, you can run
+	Junicon with the new configuration by typing:
+	<source>
+		junicon -Ic yourConfigDirectory
+	</source>
+
+	</p>
+      </section>
+
+      <section name="Documentation">
+
+	<p>
+	Documentation can be found at 
+	<source>
+		unicon.org/junicon
+	</source>
+	A description of the Unicon programming language can also be found
+	using the Unicon link at the top of this page.
+	A description of Junicon's extensions to Unicon can be found in the
+	Junicon Reference Card.
+	</p>
+
+      </section>
+    </body>
+</document>

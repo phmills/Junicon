@@ -1,0 +1,39 @@
+//=====================================================================
+// java policy file
+//=====================================================================
+
+grant {		//==== Grant all permissions
+	permission java.security.AllPermission;
+};
+ 
+grant {
+	//==== Junicon
+	permission java.util.PropertyPermission "*", "read, write";
+	permission java.lang.RuntimePermission "createClassLoader";
+	permission java.lang.RuntimePermission "loadLibrary.*";
+
+	//==== Jena
+	permission java.io.SerializablePermission "enableSubclassImplementation";
+	//====  File Permissions
+	permission java.io.FilePermission "<<ALL FILES>>", "read";
+	permission java.io.FilePermission "<<ALL FILES>>", "execute";
+	//==== Execute on all files, needed for Jython os functions.
+	// permission java.io.FilePermission "${JAVA_EXE}", "execute";
+	// permission java.io.FilePermission "${JAVAC_EXE}", "execute";
+	//====
+	
+	//================ TEMPORARY DIRS =======================
+	permission java.io.FilePermission "${java.io.tmpdir}\\-", 
+	"read, write, delete";
+	permission java.io.FilePermission "${user.home}\\tmp\\-", 
+	"read, write, delete";
+	permission java.io.FilePermission "${JUNICON_HOME}\\tmp\\-", 
+	"read, write, delete";
+	permission java.io.FilePermission "${JUNICON_HOME}\\export\\-", 
+	"read, write, delete";
+	permission java.io.FilePermission "${JUNICON_HOME}\\webroot\\-", 
+	"read, write, delete";
+	permission java.io.FilePermission "${JYTHON_HOME}\\cachedir\\-", 
+	"read, write, delete";
+};
+ 

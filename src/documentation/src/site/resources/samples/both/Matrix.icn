@@ -1,0 +1,80 @@
+#====
+# Computes matrix product.
+#====
+$ifdef JUNICON
+package edu.uidaho.junicon.test.junicon;
+$endif
+
+class Matrix ()
+method main (args)
+  local rows, cols;
+  local m1, m2, result;
+  local i, j;
+  local row, col;
+
+  rows := args[1];
+  cols := rows;
+
+  #====
+  # m1 := [[1,2,3], [4,5,6]]
+  # m2 := [[1,2],[3,4],[5,6]]
+  #====
+  m1 := [];     # rows x cols
+  every i := 1 to rows do {
+        row := [];
+        every j := 1 to cols do {
+                put(row, i*j)
+        }
+        put(m1,row);
+  };
+  m2 := [];     # cols x rows
+  every i := 1 to cols do {
+        row := [];
+        every j := 1 to rows do {
+                put(row, i*j)
+        }
+        put(m2,row);
+  };
+  result := multiply_matrix (m1, m2);   # rows x rows
+  write ("Result: ", result[rows, rows]);
+end
+
+method multiply_matrix (m1, m2)
+  local result, row1, row, colIndex, rowIndex, value;
+  result := [] # to hold the final matrix
+  every row1 := !m1 do { # loop through each row in the first matrix
+        row := []
+        every colIndex := 1 to *m1 do { # and each column index of the result
+                value := 0
+                every rowIndex := 1 to *m2 do {
+                        value +:= row1[rowIndex] * m2[rowIndex][colIndex]
+                }
+                put(row, value)
+        }
+        put(result, row) # add each row as it is complete
+  }
+  return result
+end
+end
+
+#====
+# Test procedure : used only by unicon
+#====
+$ifndef JUNICON
+procedure run_matrix(args)
+  c := Matrix();
+  c.main(args);
+end
+$endif
+
+#====
+# Main procedure : used only by unicon
+#====
+$ifdef MAIN
+procedure main(args)
+  c := Matrix();
+  c.main(args);
+end
+$endif
+
+#==== END OF FILE

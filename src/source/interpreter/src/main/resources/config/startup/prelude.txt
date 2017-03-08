@@ -1,0 +1,222 @@
+@<script lang="groovy">
+//============================================================================
+// Copyright (c) 2015 Orielle, LLC.  
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// This software is provided by the copyright holders and contributors
+// "as is" and any express or implied warranties, including, but not
+// limited to, the implied warranties of merchantability and fitness for
+// a particular purpose are disclaimed. In no event shall the copyright
+// holder or contributors be liable for any direct, indirect, incidental,
+// special, exemplary, or consequential damages (including, but not
+// limited to, procurement of substitute goods or services; loss of use,
+// data, or profits; or business interruption) however caused and on any
+// theory of liability, whether in contract, strict liability, or tort
+// (including negligence or otherwise) arising in any way out of the use
+// of this software, even if advised of the possibility of such damage.
+//============================================================================
+
+//============================================================================
+// Groovy prelude.   
+// Junicon runs this prelude in interactive mode, before startup.txt.
+// The prelude can be used to customize functions, operators, and keywords.
+// The Spring configuration file then maps symbols into the below operators.
+//
+// Note that in Junicon, Java /* */ multiline comments are not allowed. 
+// You can use them in @<script> which Groovy will treat as comments,
+// but do not use non-matching quotes or grouping or semicolons within them.
+//============================================================================
+import edu.uidaho.junicon.runtime.junicon.iterators.*;
+import edu.uidaho.junicon.runtime.junicon.constructs.*;
+import edu.uidaho.junicon.runtime.junicon.operators.*;
+import edu.uidaho.junicon.runtime.junicon.annotations.*;
+import static edu.uidaho.junicon.runtime.junicon.iterators.IIconAtom.FAIL;
+
+import java.util.concurrent.ConcurrentHashMap;
+
+import groovy.lang.Closure;
+
+//============================================================================
+// Global functions.
+//============================================================================
+/**
+ * Built-in functions.
+ * Exposed as method references so they can be assignable.
+ */
+public class IconGroovyFunctions {
+  // Input-output functions.
+  public static Closure writeln = IconFunctions.&writeln;
+
+  // Collection functions.
+  public static Closure delete = IconFunctions.&delete;
+  public static Closure get = IconFunctions.&get;
+  public static Closure insert = IconFunctions.&insert;
+  public static Closure key = IconFunctions.&key;
+  public static Closure list = IconFunctions.&list;
+  public static Closure member = IconFunctions.&member;
+  public static Closure min = IconFunctions.&min;
+  public static Closure max = IconFunctions.&max;
+  public static Closure pull = IconFunctions.&pull;
+  public static Closure push = IconFunctions.&push;
+  public static Closure put = IconFunctions.&put;
+  public static Closure pop = IconFunctions.&pop;
+  public static Closure seq = IconFunctions.&seq;
+  public static Closure set = IconFunctions.&set;
+  public static Closure sort = IconFunctions.&sort;
+  public static Closure sortf = IconFunctions.&sortf;
+  public static Closure sortn = IconFunctions.&sortn;
+  public static Closure table = IconFunctions.&table;
+
+  // Concurrency functions.
+  public static Closure spawnThread = IconFunctions.&spawnThread;
+
+  // Conversion functions.
+  public static Closure integer = IconFunctions.&integer;
+  public static Closure numeric = IconFunctions.&numeric;
+  public static Closure ord = IconFunctions.&ord;
+  public static Closure real = IconFunctions.&real;
+  public static Closure string = IconFunctions.&string;
+
+  // Arithmetic functions.
+  public static Closure abs = IconFunctions.&abs;
+  public static Closure acos = IconFunctions.&acos;
+  public static Closure asin = IconFunctions.&asin;
+  public static Closure atan = IconFunctions.&atan;
+  public static Closure atanh = IconFunctions.&atanh;
+  public static Closure cos = IconFunctions.&cos;
+  public static Closure dtor = IconFunctions.&dtor;
+  public static Closure exp = IconFunctions.&exp;
+  public static Closure iand = IconFunctions.&iand;
+  public static Closure icom = IconFunctions.&icom;
+  public static Closure ior = IconFunctions.&ior;
+  public static Closure ixor = IconFunctions.&ixor;
+  public static Closure ishift = IconFunctions.&ishift;
+  public static Closure log = IconFunctions.&log;
+  public static Closure rtod = IconFunctions.&rtod;
+  public static Closure sin = IconFunctions.&sin;
+  public static Closure sqrt = IconFunctions.&sqrt;
+  public static Closure tan = IconFunctions.&tan;
+
+  // String utility functions.
+  public static Closure bal = IconFunctions.&bal;
+  public static Closure charUnicon = IconFunctions.&charUnicon;
+  public static Closure center = IconFunctions.&center;
+  public static Closure left = IconFunctions.&left;
+  public static Closure map = IconFunctions.&map;
+  public static Closure repl = IconFunctions.&repl;
+  public static Closure reverse = IconFunctions.&reverse;
+  public static Closure right = IconFunctions.&right;
+  public static Closure trim = IconFunctions.&trim;
+
+  // String scanning functions.
+  public static Closure find = IconFunctions.&find;
+  public static Closure match = IconFunctions.&match;
+  public static Closure move = IconFunctions.&move;
+  public static Closure tab = IconFunctions.&tab;
+  public static Closure upto = IconFunctions.&upto;
+  public static Closure many = IconFunctions.&many;
+  public static Closure any = IconFunctions.&any;
+  public static Closure pos = IconFunctions.&pos;
+
+  //=========================================================
+  // UniconFunctions
+  //=========================================================
+
+  // Input-output functions.
+  public static Closure flush = UniconFunctions.&flush;
+  public static Closure getch = UniconFunctions.&getch;
+  public static Closure getche = UniconFunctions.&getche;
+  public static Closure read = UniconFunctions.&read;
+  public static Closure reads = UniconFunctions.&reads;
+  public static Closure write = UniconFunctions.&write;
+  public static Closure writes = UniconFunctions.&writes;
+
+  // File functions.
+  public static Closure chdir = UniconFunctions.&chdir;
+  public static Closure close = UniconFunctions.&close;
+  public static Closure open = UniconFunctions.&open;
+  public static Closure remove = UniconFunctions.&remove;
+  public static Closure rename = UniconFunctions.&rename;
+  public static Closure seek = UniconFunctions.&seek;
+  public static Closure where = UniconFunctions.&where;
+
+  // Database functions.
+  public static Closure sql = UniconFunctions.&sql;
+  public static Closure fetch = UniconFunctions.&fetch;
+
+  // Reflective functions.
+  public static Closure copy = UniconFunctions.&copy;
+  public static Closure image = UniconFunctions.&image;
+  public static Closure type = UniconFunctions.&type;
+
+  // System functions.
+  public static Closure collect = UniconFunctions.&collect;
+  public static Closure delay = UniconFunctions.&delay;
+  public static Closure exit = UniconFunctions.&exit;
+  public static Closure runerr = UniconFunctions.&runerr;
+  public static Closure stop = UniconFunctions.&stop;
+  public static Closure system = UniconFunctions.&system;
+
+  //=========================================================
+  // Auxiliary functions
+  //=========================================================
+  /**
+   * Convert Java variadic function to Groovy closure.
+   * See: IconVariadicFunction.asClosure(method)
+   */
+  def proc (args) {
+	func = IconFunctions.proc(args);
+	if ((func != null) && (func instanceof VariadicFunction)) {
+	    return { Object... params -> 
+		((VariadicFunction) func).apply(params); };
+	}
+	return func;
+  }
+
+}
+
+/**
+ * Unicon global functions.  Defined as closures so can be assignable.
+ */
+public class UniconGroovyFunctions {
+}
+
+//============================================================================
+// Operators.
+//============================================================================
+/**
+ * Icon operators.
+ * <P>
+ * Groovy list, map, and set are implemented as
+ * ArrayList, LinkedHashMap, LinkedHashSet, respectively.
+ */
+public class IconGroovyOperators {
+}
+
+//============================================================================
+// &Keywords.
+//============================================================================
+
+/**
+ * Icon &keywords.
+ */
+public class IconGroovyAndKeywords {
+}
+
+;
+//============================================================================
+// End of Junicon prelude
+//============================================================================
+
+@</script>

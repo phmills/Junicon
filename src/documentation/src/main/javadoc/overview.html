@@ -1,0 +1,83 @@
+<!-- =========================================================================
+  Copyright (c) 2011 Orielle, LLC.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer. 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution. 
+
+  This software is provided by the copyright holders and contributors "as is"
+  and any express or implied warranties, including, but not limited to, the
+  implied warranties of merchantability and fitness for a particular purpose
+  are disclaimed. In no event shall the copyright holder or contributors be
+  liable for any direct, indirect, incidental, special, exemplary, or
+  consequential damages (including, but not limited to, procurement of
+  substitute goods or services; loss of use, data, or profits; or business
+  interruption) however caused and on any theory of liability, whether in
+  contract, strict liability, or tort (including negligence or otherwise)
+  arising in any way out of the use of this software, even if advised of the
+  possibility of such damage.
+========================================================================== -->
+
+<BODY>
+<!-- ===================================================================== -->
+<!-- Author: Peter Mills                                                   -->
+<!-- ===================================================================== -->
+
+<HR>
+<P> 
+This documentation describes the classes and interfaces
+for Junicon, a Java-based interpreter for the Unicon programming language.
+Unicon is a unique object-oriented dynamic language 
+that supports goal-directed evaluation of generator expressions.
+Junicon is implemented using program transformation 
+onto another scripting language, Groovy, that runs under Java.
+The result is a transformational interpreter for goal-directed evaluation
+that has seamless integration with Java.
+Junicon can function either as an
+interactive line-by-line interpreter, or as a tool that can
+translate its input to Java for compilation.
+
+<P>
+The transformational interpreter works by first parsing the 
+source language into a decorated XML abstract syntax tree.
+A series of transforms then take the XML language representation
+into its substrate equivalent.
+The program is first normalized
+into a familiar form more amenable to translation to Java, 
+by flattening nested generators and
+making iteration explicit.
+The normalized Junicon program is then transformed
+into a Java class with expressions translated into calls on the Junicon runtime.
+Lastly, the XML tree is deconstructed back into
+the target Java language, and then the result is piped into the
+the Groovy scripting engine.
+The interpreter can function in several modes, either as an
+interactive line-by-line interpreter, or as a tool that can
+transform its input directly to Java.
+
+<P>
+Support is also provided for correlating error messages
+back into the original source language,
+so as to enable debugging and tracing.
+
+<P>
+The Junicon Interpreter is composed of the:
+<UL>
+<LI> Interactive shell, 
+<LI> Parser and grammars, including the preprocessor,
+<LI> Transformer that runs XSLT scripts, as well as
+     supporting Java classes used by the XSLT scripts,
+<LI> Startup scripts, including a Groovy prelude and a Unicon startup script,
+<LI> Runtime Java classes for Junicon operators, functions, and-keywords,
+constructs, and the iterator calculus kernel.
+</UL>
+
+<P> 
+<HR>
+</BODY>

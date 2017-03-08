@@ -1,0 +1,111 @@
+#!/bin/csh -f
+#====
+# Run benchmarks in the background.
+# USAGE: nohup run_benchmark >& output.txt &
+#====
+set noclobber
+
+set warmups=20
+set iterations=20
+set junicon="$JAVA_HOME/bin/java"
+# set jmh="junicon-test-all.jar"
+set jmh="junicon-test-jmh-all.jar"
+set icon="Benchmark"
+
+# 1 hour
+set num_matr = 1100
+@ num_quic = (1536 * 30000)
+@ num_pidi = (42 * 2000)
+@ num_newi = (1800 * 50000)
+set num_fann = 11
+set num_mand = 5500
+set num_mete = 2098             # warmups 20
+set num_nbod = 18000000
+set num_spec = 4570
+set num_bina = 144
+
+# 20 minutes
+set num_matr = 700
+@ num_quic = (300 * 30000)
+@ num_pidi = (18 * 2000)
+@ num_newi = (450 * 50000)
+set num_fann = 10
+set num_mand = 3200
+set num_mete = 2098		# warmups 20
+set num_nbod = 6000000
+set num_spec = 2640
+set num_bina = 12
+
+# 5 minutes
+set num_matr = 550
+@ num_quic = (150 * 30000)
+@ num_pidi = (13 * 2000)
+@ num_newi = (150 * 50000)
+set num_fann = 10
+set num_mand = 1600
+set num_mete = 2098		# warmups 20
+set num_nbod = 1500000
+set num_spec = 1320
+set num_bina = 12
+
+#====
+# Junicon
+#====
+set warmups=20
+set iterations=20
+
+echo "#==== Junicon ===="
+echo "#==== Matrix"
+"$junicon" -jar $jmh -w $warmups -i $iterations "Matrix" $num_matr
+echo "#==== QuickSort"
+"$junicon" -jar $jmh -w $warmups -i $iterations "QuickSort" $num_quic
+echo "#==== PidigitsFast"
+"$junicon" -jar $jmh -w $warmups -i $iterations "PidigitsFast" $num_pidi
+echo "#==== NewInstances"
+"$junicon" -jar $jmh -w $warmups -i $iterations "NewInstances" $num_newi
+echo "#==== Fannkuch"
+"$junicon" -jar $jmh -w $warmups -i $iterations "Fannkuch" $num_fann
+echo "#==== Mandelbrot"
+"$junicon" -jar $jmh -w $warmups -i $iterations "Mandelbrot" $num_mand
+echo "#==== Nbody"
+"$junicon" -jar $jmh -w $warmups -i $iterations "Nbody" $num_nbod
+echo "#==== SpectralNorm"
+"$junicon" -jar $jmh -w $warmups -i $iterations "SpectralNorm" $num_spec
+
+set warmups=20
+set iterations=20
+
+echo "#==== MeteorContest"
+"$junicon" -jar $jmh -w $warmups -i $iterations "MeteorContest" $num_mete
+
+#====
+# Unicon
+#====
+set warmups=20
+set iterations=20
+
+echo "#==== Unicon ===="
+echo "#==== Matrix"
+"$icon" -w $warmups -i $iterations run_matrix $num_matr
+echo "#==== QuickSort"
+"$icon" -w $warmups -i $iterations run_quicksort $num_quic
+echo "#==== PidigitsFast"
+"$icon" -w $warmups -i $iterations run_pidigitsfast $num_pidi
+echo "#==== NewInstances"
+"$icon" -w $warmups -i $iterations run_newinstances $num_newi
+echo "#==== Fannkuch"
+"$icon" -w $warmups -i $iterations run_fannkuch $num_fann
+echo "#==== Mandelbrot"
+"$icon" -w $warmups -i $iterations run_mandelbrot $num_mand
+echo "#==== Nbody"
+"$icon" -w $warmups -i $iterations run_nbody $num_nbod
+echo "#==== SpectralNorm"
+"$icon" -w $warmups -i $iterations run_spectralnorm $num_spec
+
+set warmups=20
+set iterations=20
+
+echo "#==== MeteorContest"
+"$icon" -w $warmups -i $iterations run_meteorcontest $num_mete
+
+#==== END OF FILE

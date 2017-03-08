@@ -1,0 +1,4 @@
+# Exclude directories from git tracking
+**/save/**
+**/backup/**
+**/unused/**

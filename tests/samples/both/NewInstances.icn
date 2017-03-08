@@ -1,0 +1,87 @@
+#====
+# Unicon version of Python NewInstances.py
+#====
+$ifdef JUNICON
+package edu.uidaho.junicon.test.junicon;
+$endif
+
+class C ()
+end
+
+class D (a,b,c)
+end
+
+class E (a,b,c) 
+	local d:=a;
+	local e:=b;
+	local f:=c;
+end
+
+class CreateNewInstances ()
+    local version := 2.0;
+    local operations := 3 + 7 + 4;
+    # local rounds := 60000;
+
+    method test (rounds)
+	local i;
+	local o,o1,o2;
+	local p,p1,p2,p3,p4,p5,p6;
+	local q,q1,q2,q3;
+
+	every (i := 1 to rounds) do {
+            o  := C();
+            o1 := C();
+            o2 := C();
+            p  := D(i,i,3);
+            p1 := D(i,i,3);
+            p2 := D(i,3,3);
+            p3 := D(3,i,3);
+            p4 := D(i,i,i);
+            p5 := D(3,i,3);
+            p6 := D(i,i,i);
+            q  := E(i,i,3);
+            q1 := E(i,i,3);
+            q2 := E(i,i,3);
+            q3 := E(i,i,4);
+	}
+    end
+
+    method calibrate (rounds)
+	local i;
+	every (i := 1 to rounds) do {
+	}
+    end
+end
+
+class NewInstances()
+    method main(args)
+	local t;
+	local rounds := args[1];
+	write("Creating ", rounds, " newinstances");
+	t:= CreateNewInstances();
+	t.calibrate(rounds);
+	t.test(rounds);
+    end
+end
+
+#====
+# Test procedure : used only by unicon
+#====
+$ifndef JUNICON
+procedure run_newinstances(args)
+  c := NewInstances();
+  c.main(args);
+end
+$endif
+
+#====
+# Main procedure : used only by unicon
+#====
+$ifdef MAIN
+procedure main(args)
+  c := NewInstances();
+  c.main(args);
+end
+$endif
+
+#==== END OF FILE

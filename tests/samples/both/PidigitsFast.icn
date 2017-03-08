@@ -1,0 +1,79 @@
+#====
+# PidigitsFast.icn
+#
+# The Computer Language Benchmarks Game
+# http://benchmarksgame.alioth.debian.org/
+# Translated from Mario Pernici's Python program
+#=====
+$ifdef JUNICON
+package edu.uidaho.junicon.test.junicon;
+$endif
+
+class PidigitsFast ()
+
+#====
+# Main method.
+#   Populate list of given size with random elements.
+#   Then sort it.
+# USAGE: QuickSort size
+#====
+method main (args)
+  pidigits(args);
+end
+
+method pidigits(args)
+  local N,i,k,ns,a,t,u,k1,n,d,cse;
+
+  N := + args[1]
+  i := k := ns := a := t := u := 0
+  k1 := n := d := 1
+  repeat {
+	k +:= 1
+	t := ishift(n,1)
+	n *:= k
+	a +:= t
+	k1 +:= 2
+	a *:= k1
+	d *:= k1
+	if a >= n then {
+	    cse := n * 3 + a
+	    t := cse / d
+	    u := cse % d + n
+	    if d > u then {
+		ns := ns * 10 + t
+		i +:= 1
+		if i % 10 = 0 then {
+			# write(ns, " ", i);
+			ns := 0
+		}
+		if i >= N then break
+		a := (a - d * t) * 10
+		n *:= 10
+	    }
+	}
+  }
+end
+
+end
+
+#====
+# Test procedure : used only by unicon
+#====
+$ifndef JUNICON
+procedure run_pidigitsfast(args)
+  c := PidigitsFast();
+  c.main(args);
+end
+$endif
+
+#====
+# Main procedure : used only by unicon
+#====
+$ifdef MAIN
+procedure main(args)
+  c := PidigitsFast();
+  c.main(args);
+end
+$endif
+
+#==== END OF FILE

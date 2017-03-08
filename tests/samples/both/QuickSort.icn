@@ -1,0 +1,136 @@
+#====
+# Quicksort.
+#====
+$ifdef JUNICON
+package edu.uidaho.junicon.test.junicon;
+$endif
+
+class QuickSort ()
+
+#====
+# Main method.
+#   Populate list of given size with random elements.
+#   Then sort it.
+# USAGE: QuickSort size
+#====
+method main (args)
+  local size, m, i, result;
+  size := + args[1];
+  m := [];
+  every i := 1 to size do {
+	# put(m, ?size)
+	put(m, (size-i)+1)
+  }
+  write("Before: ")
+  # every write(!m);
+  write(m[*m]);
+  result := quicksort(m,cmp)
+  write("After:  ")
+  # every write(!result);
+  write(result[*m]);
+end
+
+#====
+# Sort subset of X between lower and upper, inclusive.
+# Returns sorted list.
+#====
+method quicksort(X, op, lower, upper)
+  local pivot, x
+
+  if /lower := 1 then {				# top level call setup
+    upper := *X 
+    op := sortop(op,X)				# select how and what we sort
+  }
+
+  if upper - lower > 0 then {
+    every x := quickpartition(X,op,lower,upper) do   # find a pivot and sort
+      /pivot | X := x				# return values w/o a structure
+    X := quicksort(X,op,lower,pivot-1)		# left 
+    X := quicksort(X,op,pivot,upper)		# right
+  }
+
+  return X 
+end
+
+#====
+# Partition helper
+#====
+method quickpartition(X, op, lower, upper)
+  local pivot
+  static pivotL
+  initial pivotL := list(3)
+
+  pivotL[1] := X[lower]				# endpoints
+  pivotL[2] := X[upper]				# and
+  pivotL[3] := X[lower + ?(upper-lower)]		# random midpoint
+  if op(pivotL[2],pivotL[1]) then pivotL[2] :=: pivotL[1]	# mini-
+  if op(pivotL[3],pivotL[2]) then pivotL[3] :=: pivotL[2]	# sort
+  pivot := pivotL[2]				# median is pivot
+
+  lower -:= 1
+  upper +:= 1
+  while lower < upper do {		# find values on wrong side of pivot
+    while op(pivot,X[upper -:= 1])	# rightmost 
+    while op(X[lower +:= 1],pivot)	# leftmost
+    if lower < upper then			# not crossed yet
+    	X[lower] :=: X[upper]			# swap 
+  }
+
+  suspend lower			# 1st return pivot point
+  suspend X			# 2nd return modified X (in case immutable)
+end
+
+#====
+# Select how to sort
+#====
+$ifdef JUNICON
+static
+$endif
+method sortop(op,X)
+  # if (op = "string") return cmp;
+  # if (op = "numeric") return cmp;
+  return cmp;
+end
+
+#====
+# Comparison method -- in Junicon, this can be a static method.
+#	string <<  >>  numeric < >
+#====
+$ifdef JUNICON
+static method cmp(a, b)
+	return a < b
+end
+$endif
+
+end
+
+#====
+# Comparison method -- in Junicon, this can be a static method.
+#====
+$ifndef JUNICON
+procedure cmp(a, b)
+	return a < b
+end
+$endif
+
+#====
+# Test procedure : used only by unicon
+#====
+$ifndef JUNICON
+procedure run_quicksort(args)
+  c := QuickSort();
+  c.main(args);
+end
+$endif
+
+#====
+# Main procedure : used only by unicon
+#====
+$ifdef MAIN
+procedure main(args)
+  c := QuickSort();
+  c.main(args);
+end
+$endif
+
+#==== END OF FILE

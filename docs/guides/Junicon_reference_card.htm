@@ -1,0 +1,742 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<HTML>
+<HEAD>
+<TITLE>Junicon Quick Reference Card</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<META name="description" content="Junicon Quick Reference Card">
+<META http-equiv="X-UA-Compatible" content="IE=8" />
+
+<!-- #================================================================ -->
+<!-- # Copyright @C 2014 Orielle LLC.  All rights reserved.
+<!-- #================================================================ -->
+
+<!-- #================================================================ -->
+<!-- # Styles.
+<!-- #================================================================ -->
+<!--
+<link rel="stylesheet" href="styles/styles.css" type="text/css">
+-->
+
+<STYLE type="text/css">
+<!--
+
+/*************** Body styles ***************/
+@media print {
+    body { margin-left: 0; margin-right: 0; }
+}
+@media screen, projection {
+    body { margin-left: 5%; margin-right: 5%; }
+}
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif ;
+	font-size: 10pt ;
+	color: black;
+	background: white ;
+}
+
+/*************** Table styles ***************/
+table {
+  font-family: Verdana, Arial, sans-serif ;
+  font-size: 100% ;
+  border-color : black ;
+  border-collapse: collapse;
+  border-width: 1px;
+  border: 1;
+  cellspacing: 0 ;
+  cellpadding: 0 ;
+}
+td {
+  border-width: 1px ;
+  border-collapse: collapse;
+  border-color : #808080 ;
+  empty-cells: show;
+  spacing: 0 ;
+  vertical-align:top;
+  text-align:left;
+}
+th {
+  border-collapse: collapse;
+  border-width: 1px ;
+  border-color: #808080 ;
+  empty-cells: show;
+  vertical-align:top;
+  text-align:left;
+}
+.noindent     { margin-left: -5% ; margin-right: -5%; }
+.moreindent   { margin-left:  5% ; margin-right:  5%; }
+
+/************** Header styles **************/
+h1 {
+    font-size: 135%;
+    font-weight: bold;
+    color:#000;
+    background:#CADFF4;
+    padding: 2px;
+    text-align:center;
+    border: 1px solid #666666;
+}
+h2 {
+    font-size: 110%;
+    font-weight: bold;
+    color: #003399;
+    background:#CADFF4;
+    margin-bottom:5px;
+    padding:2px;
+    border: 1px solid #666666;
+}
+h3 {
+    font-size: 100%;
+    font-weight: bold;
+    color: #990033;
+    text-decoration: underline;
+    margin-bottom:3px;
+}
+h4, h5 {
+    font-size: 100%;
+    font-weight: bold;
+    margin-bottom:3px;
+}
+
+/*************** Scrolling styles ***************/
+div.scroll {
+	overflow: scroll;
+	height: 100px;
+	border: 1px solid #666666;
+	background-color: white;
+	padding: 8px;
+}
+
+/*************** List styles ***************/
+ul { list-style-type: disc }
+dt { font-weight: bold }
+sup { font-size: 70% }
+
+ul ul    { list-style-type: circle; ; color: black; }
+ul ul ul { list-style-type: decimal; ; color: black; }
+
+/************** Link styles **************/
+/* Change background/foreground colour on hover */
+A:link { color: rgb(0, 0, 255) }        /* for unvisited links */
+A:hover { color: rgb(255, 0, 0) }       /* when mouse is over link */
+
+/************** Text styles **************/
+/* No extra space between paragraphs : inherits from body */
+pre {
+    font-family: monospace;
+    font-size: 10pt ;
+    margin-top: 1 ;
+    margin-bottom: 1 ;
+    margin-left: 5ex ;
+    }
+/* margin-top: .25em ; margin-bottom: .25em ; padding: 0; */
+
+/* Some general utility definitions */
+.centered {
+    text-align: center;
+}
+.caption {
+    text-align: center;
+    font-size: smaller;
+}
+code {
+    font-size: 10pt;
+}
+.footnote {
+    font-size: smaller;
+    border-top: thin solid gray;
+}
+
+/************** Footer styles **************/
+div.footerSpace { height:6pt;font-size:6pt }
+div.footer { font-size:80% }
+div.tab { margin-left: 5ex; }	
+
+/* Leaders for acronym lists and Table of Contents */
+div.leader  {
+	width: 100%;
+	border-bottom:
+	1px dotted black;
+}
+div.leaderLeft  {
+	float: left;
+	position: relative;
+	top: 5px;
+	background-color: white;
+	border-bottom: solid white .2em;
+	text-align: left;
+}
+div.leaderRight {
+	float: right;
+	position: relative;
+	top: 5px;
+	background-color: white;
+	border-bottom: solid white .2em;
+	text-align: right;
+}
+
+/*************** Local additions ***************/
+H3.refcard {
+	color: #0000CC;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+H4.refcard {
+	color: #CC0000;
+	font-weight: bold;
+	text-decoration: none;
+}
+-->
+</STYLE>
+
+</HEAD>
+
+<!-- #================================================================ -->
+<!-- # Body.
+<!-- #================================================================ -->
+<BODY xml:lang="en" lang="en" bgcolor=white>
+
+<H1>Junicon Quick Reference Card</H1>
+
+<CENTER>
+<B>
+<I>Orielle, LLC</I>
+<BR>
+<A HREF="http://www.orielle.com" target="_blank">www.orielle.com</A>
+<BR>
+<BR>
+<I>University of Idaho</I>
+<BR>
+<A HREF="http://www.cs.uidaho.edu" target="_blank">www.cs.uidaho.edu</A>
+</B>
+</CENTER>
+
+<!-- ================================================================= -->
+<H2>&nbsp; Introduction</H2>
+
+<P>
+Junicon is a Java-based interpreter for the Unicon programming
+language, implemented using program transformation.
+Unicon in turn is a unique object-oriented scripting language 
+that supports goal-directed evaluation of generator expressions.
+Junicon's novel implementation uses XML-based program transformation to
+translate Unicon into another scripting language, Groovy, that runs under Java.
+The result is a transformational interpreter for goal-directed evaluation
+that, because it runs on Java, is portable
+and has access to the full range of 
+Java support for concurrency and graphics.
+
+<P>
+A key feature of Junicon is its seamless interoperability with Java,
+which allows Java methods, class fields, and data types 
+to be accessed from Unicon, and vice-versa.
+Junicon can function in several modes, either as an
+interactive line-by-line interpreter, or as a tool that can translate
+its input into Groovy or directly to Java for later compilation.
+When run interactively, Java methods can be used transparently.
+When compiling to Java, however, casts may be needed, and Java method
+invocation must be indicated using "::"
+to distinguish it from the lambda expression invocation used by Junicon
+methods.
+<!--
+#====
+# A key feature of Junicon is its seamless integration with Java,
+# which allows Unicon values and class fields to be passed to and
+# from Java methods, and vice-versa.
+#====
+# A key feature of Junicon is its seamless integration with Java,
+# which allows Java methods, class fields, and data types 
+# to be accessed from Unicon, and vice-versa.
+#====
+-->
+
+<P>
+Junicon also supports multi-language embedding using scoped annotations.
+Junicon classes, methods, and expressions
+can be embedded in Java or Groovy, and vice-versa, using
+annotations of the form @&lt;script lang="junicon"&gt; code @&lt;/script&gt;
+(or "java" or "groovy", respectively).
+Scoped annotations can be nested, in which case the code is transformed
+and then embedded from the innermost to the outermost annotation.
+Goal-directed evaluation can thus be embedded into Java or Groovy
+in a familiar and minimally invasive manner.
+Similarly, Java code can be injected into Junicon for native evaluation.
+
+<P>
+Junicon has a small number of additional constructs
+that extend Unicon syntax with new features.
+These extensions are conservative in that they preserve the 
+original Unicon syntax.
+
+The new features of Junicon include
+scoped annotations for expressions,
+integration with the Java package model,
+familiar block notation for classes and methods,
+support for multi-language embedding,
+and supplemental features such as 
+generator expressions as first class citizens,
+map and set literals,
+lambda expressions,
+concurrent generators using a lazy proxy for a thread,
+and function invocation without parenthesis.
+<!--
+#====
+# The new features of Junicon include
+# annotations for types and expressions,
+#====
+# Proxy operators for threaded concurrency
+# generator proxies for multi-threading concurrency,
+#====
+-->
+
+<P>
+Junicon has a small number of differences from Unicon that are
+required to cleanly interface with Java and Groovy.
+<UL>
+<LI>
+In contrast to Unicon,
+Junicon follows the Java package model and its scoping rules,
+so that all variables must be imported or declared.
+Icon procedures are mapped into the Java model
+by making them variadic lambda expressions bound to static class fields,
+and Unicon class instantiation using "C()" instead of "new C()"
+is handled using static factory methods.
+<LI>
+Like Unicon, index origin is 1 and not 0.
+However, this can be altered at code generation time using
+@&lt;index origin="0"&gt;, which is then fixed and cannot be changed,
+or dynamically at run time using IconNumber.setIndexOrigin(0)
+or the Junicon command-line option "--java-origin".
+<LI>
+Like Unicon, arbitary precision for integer arithmetic is the default.
+However, this can be turned off at run time using
+IconNumber.setIsIntegerPrecision(false),
+or interactively using Junicon's "--no-precision" command-line option. 
+Similarly decimal precision can be enabled using 
+IconNumber.setIsRealPrecision(true).
+<LI>
+Like Unicon, method parameters can have defaults
+and method arguments can be omitted; thus method overloading is not allowed,
+and each method has a unique name.
+<LI>
+Unlike Unicon, Junicon does not allow using numbers for method names or using
+strings for fields, for example 3(x) or animal."action"().
+</UL>
+
+<P>
+Below is a summary of Junicon's extensions to Unicon.
+
+<!-- ================================================================= -->
+<H2>&nbsp; Extensions to Unicon</H2>
+<B>
+
+<!-- ================================================ -->
+<P></P>
+<H3 class="refcard">Annotations and directives
+</H3>
+
+<UL>
+
+<LI><H4 class="refcard">Scoped annotations    &nbsp; (X annotations)
+</H4>
+
+<PRE>
+@&lt;tag attr=x ...&gt; expr @&lt;/tag&gt;		# Annotations can be applied to expressions as well as to types
+@&lt;tag attr=x .../&gt;			# Can use abbreviated empty-element tags
+#@&lt;tag attr=x attri=y ...&gt;		# Commented annotations are also allowed
+</PRE>
+
+<LI><H4 class="refcard">Transform directives
+</H4>
+
+<PRE>
+@&lt;index origin="0"&gt;			# Directives are scoped annotations on a single line
+#@&lt;index origin="0"&gt;			# Generated code below this will have origin 0
+</PRE>
+
+</UL>
+
+<!-- ================================================ -->
+<P></P>
+<H3 class="refcard">Java integration
+</H3>
+
+<UL>
+
+<LI><H4 class="refcard">Follows Java package notation and scoping rules
+</H4>
+
+<PRE>
+package some.package			# Junicon follows Java package notation and scoping rules
+import  some.other.package		# All variables must be imported or declared
+import  static some.other.package.*	# Brings all globals, i.e., class statics, into the namespace
+</PRE>
+
+<LI><H4 class="refcard">Familiar block notation
+</H4>
+
+<PRE>
+class foo : superFoo {        		# Familiar block notation is allowed. Class parenthesis may be omitted.
+  local field;				# Local variable declarations in any block are allowed
+  method m(x) { 			# Local variables must be declared
+    local foo : = expr; }		#   Unlike Unicon, Junicon does not treat undeclared variables as local
+  static method s(x) { }		# Static methods are allowed
+  method main(args) { }			# Automatically invoked by static main(String[] args)
+}					# 	Class name should match file name
+</PRE>
+
+<LI><H4 class="refcard">Java-style instance creation and method reference
+</H4>
+<PRE>
+new C(args)				# Can use "new" for instance creation
+o::f(x)					# Need to explicitly indicate any Java methods when compiling to Java
+</PRE>
+
+<LI><H4 class="refcard">Type declarations
+</H4>
+
+<PRE>
+local  type x := e, y := e;		# Facilitate cut-through to Java
+static type x := e, y := e;
+global type x, y;
+method foo(int x=3, y:int=3, z:int:3)	# Default parameters can use =
+method foo(Object... args)		# Allow Java-style types and varargs
+</PRE>
+
+<LI><H4 class="refcard">Mapping Unicon globals, procedures, and classes into Java
+</H4>
+
+<PRE>
+global G				=>  globalsMap.get("G")
+procedure P(x) {body}			=>  class P { static method P(x) {body} }	import static P.P;
+					            # Multiple procedures in a script are grouped into one class
+class C { }				=>  class C { static C=()->new C(); }		import static C.C;
+method M(x) {body}			=>  M = this::M;    # Exposed as variadic method reference
+					    M (Object... args) {body};
+</PRE>
+
+<!--
+#====
+# method M(x) {body}			=> M=(Object... args)->{body'};
+#====
+# foo::C()				=>  foo.C.C()
+# foo::P				=>  foo.P.P
+# ::C()					=>  C.C()
+# C()					=>  C()
+# import foo:bar  =>  static import foo.bar.*.*  ; import foo.bar.*
+#====
+# @<script> multiline comments are not allowed
+# a[2:3] := [7,8]; advanced slicing
+#====
+-->
+
+<LI><H4 class="refcard">Supports legacy Unicon package notation
+</H4>
+
+<PRE>
+package "/usr/foo"			=>  package usr.foo
+import "/usr/foo"			=>  import static usr.foo.*
+link foo				=>  import static foo.*
+</PRE>
+
+<LI><H4 class="refcard">Optional Java-like syntax using --java-syntax
+</H4>
+
+<PRE>
+class C {
+  var x;				# Variables defined using "var"
+  def f(args) {				# Methods defined using "def"
+	x = 1;				# Assignment is "=" not ":="
+	if (x==2) then write("match") }	# Equality is "==" not "="
+}
+</PRE>
+
+</UL>
+
+<!-- ================================================ -->
+<P></P>
+<H3 class="refcard">Multi-language embedding
+</H3>
+
+<UL>
+
+<LI><H4 class="refcard">Embedding goal-directed evaluation using scoped annotations
+</H4>
+
+<PRE>
+@&lt;script lang="junicon"&gt;		# If a line starts with @&lt;script lang="junicon"&gt; 
+   { (x) -> return every(!x); }		# contents up to a matching end tag
+@&lt;/script&gt;				# produce a generator with an implicit next() after it
+</PRE>
+
+<LI><H4 class="refcard">Injecting Java using scoped annotations
+</H4>
+
+<PRE>
+@&lt;script lang="java"&gt;			# If a line starts with @&lt;script lang="java"&gt; contents up to a matching end tag
+   y = "hello"+"world";			# are not transformed, and are injected for native evaluation using ()->{&lt;code&gt;}
+@&lt;/script&gt;				# Multiline comments /* */ must contain matching group delimiters
+</PRE>
+
+<LI><H4 class="refcard">Using Java methods
+</H4>
+<PRE>
+((List) x)::add((String) y);		# Allow cast in arguments and first field
+System.out::println(x);			# Java methods are indicated by "::", only needed when compiling to Java
+</PRE>
+
+<LI><H4 class="refcard">Block quotes
+</H4>
+
+<PRE>
+x := {&lt; code &gt;}				# Section of code that is turned into a quoted string
+</PRE>
+
+</UL>
+
+<!-- ================================================ -->
+<P></P>
+<H3 class="refcard">Supplemental features
+</H3>
+
+<UL>
+
+<LI><H4 class="refcard">Map and set literals
+</H4>
+
+<PRE>
+[ 1,2,3, [4,5] ]			# List creation
+[ key:value, ..., key:value ]		# Map creation
+[:]					# Empty map
+{ 1,2,3 }				# Set literal
+</PRE>
+
+<!--
+#====
+# object["x"]				# Field access by name or index
+# object[1]				# This is standard in Icon
+# object[1:2]				# Not allowed, not like "list sections"
+# map[i]				# Map access by key
+# map.i					# Property notation is also allowed
+#====
+-->
+
+<LI><H4 class="refcard">Advanced slicing
+</H4>
+
+<PRE>
+x[1:2] := [3,4];			# Can use slicing in assignment
+</PRE>
+
+<LI><H4 class="refcard">List comprehension over generator expressions
+</H4>
+
+<PRE>
+[: (1 to 5) :]				# Creates list by evaluating every(expr)
+</PRE>
+
+<LI><H4 class="refcard">Lambda expressions and abbreviated invocation
+</H4>
+
+<PRE>
+(x,y) -> { expr }			# Like Java, lambdas do not allow locals or parameters to be redeclared.
+					# However, referenced locals do not need to be effectively final.
+write x y				# Can omit parenthesis in simple function invocation
+</PRE>
+
+<LI><H4 class="refcard">Generator expressions as first class citizens
+</H4>
+
+<PRE>
+g := <> expression			# Create generator expression that is not yet evaluated.
+!g					# Use generator expression, or promote Java iterator or collection.
+</PRE>
+
+<LI><H4 class="refcard">Concurrent generators using a lazy thread proxy
+</H4>
+
+<PRE>
+|<> coexpression			# Creates a co-expression. Use @coexpr to get the next element.
+|>  pipe				# Creates a co-expression proxy to the generator running in a separate thread.
+					#	The thread on demand using @ returns results to the waiting proxy.
+|>> proxy				# Creates an in-place proxy to the generator running in a separate thread.
+					#	Equivalent to (! |> expr)
+|<>| f(e)				# Creates a data-parallel proxy in a separate thread.
+					#	Equivalent to |> flatten(spawn(<>f, chunk(|> e)))
+</PRE>
+
+<!--
+#====
+# Spawns a thread for the generator that on demand returns results to the proxy.
+# The proxy waits on the thread's blocking queue of produced results.
+#====
+# Spawns a thread for the generator that lazily returns results to the proxy.
+# Each proxy result is a future that, when dereferenced, waits
+# on the thread's blocking queue of produced results.
+#====
+-->
+
+<LI><H4 class="refcard">Java-like enhancements</H4>
+
+<PRE>
+x.next()				# Relaxed to allow keywords in object references
+null					# Java null allowed
+// comment				# Java line comments are allowed
+"string \ "				# Escapes preserve newlines and tabs
+</PRE>
+
+</UL>
+
+<!-- ================================================ -->
+</B>
+
+<!-- ================================================================= -->
+<H2>&nbsp; Discussion</H2>
+
+The new features of Junicon include:
+
+<UL>
+
+<LI>
+<P>
+<B>
+Scoped annotations.
+</B>
+Annotations provide hints that guide the behavior of the interpreter.
+Junicon provides a novel form of annotations
+that combine features of Java annotations with XML-style tags.
+Unlike Java, the 
+XML-style annotations can be applied to expressions as well as to types.
+Like XML, annotations can surround text
+and can also be nested.
+Currently the scoped annotations are used for transform directives,
+providing control over code generation
+in addition to Unicon's $-prefixed preprocessor directives.
+They could also conceivably be used to mix XML tags into sections of code.
+
+<LI>
+<P>
+<B>
+Close integration with Java.
+</B>
+New features to support seamless integration include
+using types in variable declarations
+to facilitate cut-through to Java, casts for type coercion,
+package dot notation,
+instance creation using "new", 
+and explicitly indicating which methods are native Java invocation.
+The latter is only needed when directly compiling to Java.
+
+<LI>
+<P>
+<B>
+Multi-language embedding using scoped annotations.
+</B>
+Scoped annotations can be used to embed Junicon within Java and Groovy,
+and vice-versa.
+Embedding Junicon into Java or Groovy can occur at the class, method, field,
+or expression level, and leaves code outside the embedding unchanged.
+Embedding Java into Junicon will
+exempt sections of code from being transformed,
+and so are directly passed through to the substrate interpreter.
+Block quotes are sections of code that are turned into quoted strings.
+
+<LI>
+<P>
+<B>
+Generator expressions as first class citizens.
+</B>
+We allow 
+generator expressions to be used as first-class citizens that can be assigned
+to variables and passed as parameters.
+We also support generator creation
+using familiar (x in E) syntax.
+Generator expressions are distinct from Java iterators
+that may otherwise be passed to and returned from native Java code.
+To be used as a generator, a Java iterator must 
+be explicitly promoted to a generator using an "!" expression.
+
+<LI>
+<P>
+<B>
+Powerful features otherwise missing from Unicon.
+</B>
+These features include
+map and set literals,
+lambda expressions,
+a natural style of method invocation that omits parenthesis,
+familiar block notation for classes and procedures,
+static methods,
+and local variable declarations within blocks.
+
+</UL>
+
+<!-- #================================================================ -->
+<!-- # Footer.
+<!-- #================================================================ -->
+
+<!-- ================= Copyright Notice Footer =========== -->
+<P>
+<BR>
+<HR>
+<DIV class=footer>
+
+<!-- ================= Copyright Notice ============== -->
+<B>
+Copyright &copy; 2015 Orielle, LLC.
+&nbsp;
+All Rights Reserved.
+</B>
+<BR>
+<BR>
+
+<!-- ================= License ============== -->
+<TABLE cellspacing="0" cellpadding="4" border="1"><TR><TD>
+<U> <B>License</B> </U>
+<BR>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+<OL style="margin-top:0; margin-bottom:0;">
+<LI>
+    Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+<LI>
+    Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+</OL>
+This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability and fitness for
+a particular purpose are disclaimed. In no event shall the copyright
+holder or contributors be liable for any direct, indirect, incidental,
+special, exemplary, or consequential damages (including, but not
+limited to, procurement of substitute goods or services; loss of use,
+data, or profits; or business interruption) however caused and on any
+theory of liability, whether in contract, strict liability, or tort
+(including negligence or otherwise) arising in any way out of the use
+of this software, even if advised of the possibility of such damage.
+</TD></TR></TABLE>
+<BR>
+<!-- ================================================= -->
+
+<!-- ================= Version ============== -->
+<B> Document version: 1.8.4, September 22, 2015
+</B>
+<DIV style="float:right">
+<B> Author: Peter Mills
+</B>
+</DIV>
+
+<HR></HR>
+<!-- ======================================== -->
+
+</DIV>
+
+</BODY>
+
+</HTML>
+
+<!-- END OF FILE -->

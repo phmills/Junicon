@@ -1,0 +1,830 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:lang="http://www.springframework.org/schema/lang"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans classpath:org/springframework/beans/factory/xml/spring-beans-3.2.xsd
+http://www.springframework.org/schema/aop classpath:org/springframework/aop/config/spring-aop-3.2.xsd">
+<!--
+http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+-->
+
+<!-- =========================================================================
+  Copyright (c) 2016 Orielle, LLC.  
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+  This software is provided by the copyright holders and contributors
+  "as is" and any express or implied warranties, including, but not
+  limited to, the implied warranties of merchantability and fitness for
+  a particular purpose are disclaimed. In no event shall the copyright
+  holder or contributors be liable for any direct, indirect, incidental,
+  special, exemplary, or consequential damages (including, but not
+  limited to, procurement of substitute goods or services; loss of use,
+  data, or profits; or business interruption) however caused and on any
+  theory of liability, whether in contract, strict liability, or tort
+  (including negligence or otherwise) arising in any way out of the use
+  of this software, even if advised of the possibility of such damage.
+========================================================================== -->
+
+<!-- ===================================================================== -->
+<!-- Author: Peter Mills                                                   -->
+<!-- ===================================================================== -->
+
+<!-- #=============================
+     # Set system properties, used as fallback for ${key}
+     #============================= -->
+<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+    <property name="targetObject" value="#{systemProperties}"/>
+    <property name="targetMethod" value="putAll"/>
+    <property name="arguments">
+        <map>
+	    <!-- defaults -->
+	    <entry key="JUNICON_HOME_URL" value="#{systemProperties['JUNICON_HOME_URL']?:''}"/>
+	    <entry key="JUNICON_BASE_URL" value="#{systemProperties['JUNICON_BASE_URL']?:'.'}"/>
+
+	    <!-- turn off jline in groovysh -->
+	    <entry key="jline.terminal" value="jline.UnsupportedTerminal"/>
+        </map>
+    </property>
+</bean>
+
+<!-- #===============================================
+     # System-wide defaults
+     #=============================================== -->
+<bean id="PropertiesExtenderDefaults" class="edu.uidaho.junicon.interpreter.interpreter.PropertiesExtender">
+    <property name="defaultDefaultProperties" value="#{systemProperties}"/>
+</bean>
+
+<bean id="TransformDefaults" class="edu.uidaho.junicon.interpreter.transformer.Transform">
+    <property name="defaultCompileTransforms" value="false"/>
+    <property name="defaultBaseURL" value="#{systemProperties['JUNICON_BASE_URL']}/config/transforms/interpreter/"/>
+</bean>
+
+<!-- #===============================================
+     # Configuration files
+     #=============================================== -->
+<bean id="inputUsage" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/startup/usage.txt"/>
+</bean>
+<bean id="inputAppWindows" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/bin/windows/runapp.bat"/>
+</bean>
+<bean id="inputAppLinux" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/bin/linux/runapp.sh"/>
+</bean>
+<bean id="inputJavaPreface" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/startup/java_preface.txt"/>
+</bean>
+<bean id="inputPrelude" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/startup/prelude.txt"/>
+</bean>
+<bean id="inputStartupScript" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/startup/startup.txt"/>
+</bean>
+<bean id="inputNormalize" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/transforms/interpreter/normalize.xsl"/>
+</bean>
+<bean id="inputMainTransform" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/transforms/interpreter/transform.xsl"/>
+</bean>
+<bean id="inputDeconstruct" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/transforms/interpreter/deconstruct.xsl"/>
+</bean>
+<bean id="inputFormat" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/transforms/interpreter/format.xsl"/>
+</bean>
+<bean id="inputFormatCorrelate" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/transforms/interpreter/formatCorrelate.xsl"/>
+</bean>
+<bean id="inputFormatNormalize" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/transforms/interpreter/format.xsl"/>
+</bean>
+<bean id="inputExport" class="edu.uidaho.junicon.runtime.util.FileCopy">
+    <property name="input" value="${JUNICON_HOME_URL}config/transforms/interpreter/export.xsl"/>
+</bean>
+
+<!-- #===============================================
+     # Outer command shell
+     #=============================================== -->
+<bean id="CommandShell" class="edu.uidaho.junicon.interpreter.interpreter.CommandShell">
+    <!-- #====
+	 # Dependency injection
+	 #==== -->
+    <property name="name" value="Shell"/>
+    <property name="type" value="CommandShell"/>
+    <property name="parent"><null/></property>
+    <property name="parser" ref="StatementDetectorParser"/>
+    <property name="substrate"><null/></property>
+    <property name="logger" ref="DefaultLogger"/>
+
+    <!-- #====
+	 # Dispatcher to Groovy sub-interpreter
+	 #==== -->
+    <property name="addDispatchChild" ref="JuniconInterpreter"/>
+    <property name="defaultDispatchInterpreter" ref="JuniconInterpreter"/>
+
+    <!-- #====
+	 # Base properties
+	 #==== -->
+    <property name="prompt" value=">>> "/>
+    <property name="partialPrompt" value="... "/>
+    <property name="defaultCompileTransforms" value="false"/>
+    <property name="compileTransforms" value="false"/>
+    <property name="showRawSubstrateErrors" value="true"/>
+
+    <!-- #====
+	 # Shell properties
+	 #==== -->
+    <property name="isInteractive" value="false"/>
+    <property name="ignoreSystemStartup" value="false"/>
+    <property name="echo" value="false"/>
+    <property name="echoStartup" value="false"/>
+    <property name="echoSystemStartup" value="false"/>
+    <property name="stopScriptOnError" value="false"/>
+    <property name="exitOnScriptError" value="false"/>
+    <property name="resetParserOnError" value="true"/>
+
+    <!--
+    <property name="workingDirectory" value="${JUNICON_HOME_URL}tmp" />
+    -->
+
+    <property name="usage">
+	<value>#{inputUsage.contents}</value>
+    </property>
+
+    <property name="appWindows">
+	<value>#{inputAppWindows.contents}</value>
+    </property>
+
+    <property name="appLinux">
+	<value>#{inputAppLinux.contents}</value>
+    </property>
+
+    <property name="javaPreface">
+	<value>#{inputJavaPreface.contents}</value>
+    </property>
+
+    <property name="startupScripts">
+	<list>
+		<value>#{inputPrelude.contents}</value>
+		<value>#{inputStartupScript.contents}</value>
+	</list>
+    </property>
+    <property name="startupScriptNames">
+	<list>
+		<value>#{inputPrelude.filename}</value>
+		<value>#{inputStartupScript.filename}</value>
+	</list>
+    </property>
+
+    <!-- #====
+	 # Shell display
+	 #==== -->
+    <property name="license">
+	<value>
+-----------------------------------------------------------------------
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability and fitness for
+a particular purpose are disclaimed. In no event shall the copyright
+holder or contributors be liable for any direct, indirect, incidental,
+special, exemplary, or consequential damages (including, but not
+limited to, procurement of substitute goods or services; loss of use,
+data, or profits; or business interruption) however caused and on any
+theory of liability, whether in contract, strict liability, or tort
+(including negligence or otherwise) arising in any way out of the use
+of this software, even if advised of the possibility of such damage.
+-----------------------------------------------------------------------
+	</value>
+    </property>
+
+    <property name="credits">
+	<value>
+Thanks to the developers and other contributors.
+	</value>
+    </property>
+
+    <property name="help">
+	<value>-- Type "@help", "@copyright", "@credits", or "@license" \n--    for more information. \n-- To quit type @quit, @exit, or "Ctrl-C".</value>
+    </property>
+
+    <property name="header">
+	<value>------------------------------------------------
+-- Junicon 1.8
+------------------------------------------------
+Copyright (c) 2016 Orielle, LLC.
+All rights reserved.
+
+Type Ctl-U to kill input.  Type Ctl-C to exit.
+</value>
+
+    </property>
+    <!-- <value> \n #{CommandShell.help}</value> -->
+
+    <property name="trailer">
+	<value>--       Thanks for using Junicon...</value>
+    </property>
+
+    <!-- #====
+	 # Debugging
+	 #==== -->
+    <property name="doNotExecute" value="false"/>
+
+    <!-- #====
+	 # Initialization : calls setInit(dummy) after configuration.
+	 #==== -->
+    <property name="init"><null/></property>
+</bean>
+
+<!-- #===============================================
+     # Logger
+     #=============================================== -->
+<bean id="DefaultLogger" class="edu.uidaho.junicon.runtime.util.LoggerFactory">
+    <property name="streamMap" value="#{systemProperties}"/>
+    <!--
+    <property name="defaultPrintStream" value="#{T(java.lang.System).out}"/>
+    <property name="isDebug" value="#{DebugDefaults.defaultIsDebug}"/>
+    <property name="isTrace" value="#{DebugDefaults.defaultIsTrace}"/>
+    <property name="defaultIsDebug" value="false"/>
+    <property name="defaultIsTrace" value="false"/>
+    -->
+</bean>
+
+<!-- #===============================================
+     # Parsers: QuoteDetector => Preprocessor => StatementDetector => Grammar
+     #=============================================== -->
+<bean id="StatementDetectorParser" class="edu.uidaho.junicon.interpreter.parser.ParserFromPreprocessor">
+    <property name="name" value="StatementDetector"/>
+    <property name="type" value="StatementDetector"/>
+    <property name="parent" ref="CommandShell"/>
+    <property name="preprocessor" ref="Preprocessor"/>
+    <property name="parserWrapper" ref="StatementDetector"/>
+</bean>
+
+<bean id="StatementDetector" class="edu.uidaho.junicon.interpreter.parser.StatementDetector">
+    <property name="quoteOnlyMode" value="false"/>
+    <property name="preserveEmptyLines" value="true"/>
+    <property name="allowPoundComment" value="true"/>
+    <property name="allowSlashComment" value="true"/>
+    <property name="allowMultilineComment" value="false"/>
+    <property name="allowBlockQuote" value="true"/>
+    <property name="allowPatternLiteral" value="false"/>
+    <property name="allowOntologyLiteral" value="false"/>
+    <property name="allowCommandLiteral" value="false"/>
+    <property name="allowEscapedStartQuote" value="false"/>
+    <property name="allowEscapedEndQuote" value="true"/>
+    <property name="allowEscapedBlockQuote" value="false"/>
+    <property name="allowEscapedComment" value="false"/>
+    <property name="allowEscapedNewline" value="false"/>
+    <property name="allowEscapedNewlineInQuote" value="false"/>
+    <property name="allowEscapedNewlineInBlockQuote" value="true"/>
+    <property name="splitMultipleStatementsOnLine" value="true"/>
+</bean>
+
+<bean id="Preprocessor" class="edu.uidaho.junicon.interpreter.parser.ParserFromPreprocessor">
+    <property name="name" value="Preprocessor"/>
+    <property name="type" value="Preprocessor"/>
+    <property name="parent" ref="CommandShell"/>
+    <property name="parentParser" ref="StatementDetectorParser"/>
+    <property name="preprocessor" ref="QuoteMetaParser"/>
+    <property name="parserWrapper" ref="JuniconPreprocessor"/>
+</bean>
+
+<bean id="JuniconPreprocessor" class="edu.uidaho.junicon.grammars.junicon.JuniconPreprocessor">
+    <property name="relaxedUniconSyntax" value="true"/>
+    <property name="doSemicolonInsertion" value="true"/>
+</bean>
+
+<bean id="QuoteMetaParser" class="edu.uidaho.junicon.interpreter.parser.ParserFromPreprocessor">
+    <property name="name" value="QuoteDetector"/>
+    <property name="type" value="StatementDetector"/>
+    <property name="parent" ref="CommandShell"/>
+    <property name="parentParser" ref="Preprocessor"/>
+    <property name="parserWrapper" ref="QuoteDetector"/>
+</bean>
+
+<bean id="QuoteDetector" class="edu.uidaho.junicon.interpreter.parser.StatementDetector">
+    <property name="quoteOnlyMode" value="true"/>
+    <property name="preserveEmptyLines" value="true"/>
+    <property name="allowPoundComment" value="true"/>
+    <property name="allowSlashComment" value="false"/>
+    <property name="allowMultilineComment" value="false"/>
+    <property name="allowEscapedStartQuote" value="false"/>
+    <property name="allowEscapedEndQuote" value="true"/>
+    <property name="allowEscapedBlockQuote" value="false"/>
+    <property name="allowEscapedComment" value="false"/>
+    <property name="allowEscapedNewline" value="false"/>
+    <property name="allowEscapedNewlineInQuote" value="false"/>
+    <property name="allowEscapedNewlineInBlockQuote" value="true"/>
+</bean>
+
+<bean id="JuniconParser" class="edu.uidaho.junicon.interpreter.parser.ParserFromGrammar">
+    <property name="name" value="JuniconParser"/>
+    <property name="type" value="JuniconParser"/>
+    <property name="parent" ref="JuniconInterpreter"/>
+    <property name="parserWrapper" ref="JuniconJavaccParser"/>
+</bean>
+
+<bean id="JuniconJavaccParser" class="edu.uidaho.junicon.grammars.junicon.ParserBase">
+</bean>
+
+<!-- #===============================================
+     # Numeric precision and index origin.   These can be turned on two ways.
+     # 1. Transformation to Groovy.  Directives are as follows.
+     #		@<index origin="1">
+     #	   Index origin is used for index operations c[i].
+     #	   If index origin is specified using a directive it is 
+     #	   fixed at transformation, i.e., syntactially hardcoded as a setter.
+     #     Otherwise it defaults at runtime to IconNumber.getIndexOrigin().
+     # 2. Runtime of Java, after translation.  Setters are as follows.
+     #		IconNumber.setIsIntegerPrecision(true);
+     #		IconNumber.setIsRealPrecision(false);
+     #     For translation to Java, numeric literals are surrounded by
+     #     IconNumber calls that coerce them to BigInteger or BigDecimal if
+     #     isIntegerPrecision or isRealPrecision() are on, respectively.
+     #     Operators also use arbitrary precision in converting strings to
+     #	   numbers, and in their numeric results, if the above setters are on.
+     #	   Index origin is used for index and string operations.
+     #		IconNumber.setIndexOrigin(1);
+     #	   These defaults are initially set in IconNumber from System properties
+     #		junicon.isIntegerPrecision "true"
+     #		junicon.isRealPrecision "false"
+     #		junicon.indexOrigin "1".
+     #	   Java code thus can at runtime dynamically turn arbitrary
+     #     precision fully off or on using the above System properties.
+     # The above directives and setters can be set in this Spring file,
+     #	   in source code, or in the startup file.
+     #=============================================== -->
+<bean id="NumberPrecision" class="edu.uidaho.junicon.runtime.junicon.iterators.IconNumber">
+	<property name="defaultIsIntegerPrecision" value="true"/>
+	<property name="defaultIsRealPrecision" value="false"/>
+	<property name="defaultIndexOrigin" value="1"/>
+</bean>
+
+<!-- #===============================================
+     # Junicon to Groovy interpreter
+     #=============================================== -->
+<bean id="JuniconInterpreter" class="edu.uidaho.junicon.substrates.junicon.JuniconInterpreter">
+    <!-- #====
+	 # Dependency injection
+	 #==== -->
+    <property name="name" value="Junicon"/>
+    <property name="type" value="JuniconIntepreter"/>
+    <property name="parent" ref="CommandShell"/>
+    <property name="parser" ref="JuniconParser"/>
+    <property name="substrate" ref="DefaultSubstrate"/>
+    <property name="logger" ref="DefaultLogger"/>
+
+    <!-- #====
+	 # Delegate properties to CommandShell.
+	 #==== -->
+    <property name="propertiesDelegate" ref="CommandShell"/>
+
+    <!-- #====
+	 # Junicon properties.
+	 # Interpreter properties inherit System.properties
+	 #	as well as any properties set here, and are used in transforms.
+	 #==== -->
+    <property name="addProperties">
+        <props>
+	    <!-- Force source code to have explicit origin hardcoded.
+	    <prop key="index.origin">1</prop>
+	    -->
+	</props>
+    </property>
+
+    <!-- #====
+	 # Create transform support, i.e., methods used in XSLT. 
+	 #==== -->
+    <property name="transformSupport" ref="TransformSupport"/>
+
+    <!-- #====
+	 # Base properties
+	 #==== -->
+    <property name="prompt" value=">>> "/>
+    <property name="partialPrompt" value="... "/>
+    <!--
+	<property name="defaultCompileTransforms" value="false"/>
+    -->
+
+    <!-- #====
+	 # Transforms
+	 #==== -->
+    <property name="compileTransforms" value="false"/>
+    <property name="showRawSubstrateErrors" value="true"/>
+
+    <!-- #====
+	 # Correlate source : concrete syntax nodes
+	 #==== -->
+    <property name="concreteSyntaxNodes">
+	<list>
+	    <value>IDENTIFIER</value>
+	    <value>LITERAL</value>
+	    <value>KEYWORD</value>
+	    <value>OPERATOR</value>
+	    <value>DELIMITER</value>
+	</list>
+    </property>
+
+    <!-- #====
+	 # Transforms
+	 #==== -->
+    <property name="normalizeTransform" value="#{inputNormalize.contents}"/>
+    <property name="codeTransform" value="#{inputMainTransform.contents}"/>
+    <property name="deconstructTransform" value="#{inputDeconstruct.contents}"/>
+    <property name="formatTransform" value="#{inputFormat.contents}"/>
+    <property name="correlateFormatTransform" value="#{inputFormatCorrelate.contents}"/>
+    <property name="normalizeFormatTransform" value="#{inputFormatNormalize.contents}"/>
+    <property name="exportTransform" value="#{inputExport.contents}"/>
+
+    <!-- #====
+	 # Debugging
+	 #==== -->
+    <property name="doNotExecute" value="false"/>
+
+    <!-- #====
+	 # Initialization
+	 #==== -->
+    <property name="init"><null/></property>
+</bean>
+
+<!-- #===============================================
+     # Transform supporting methods.
+     #=============================================== -->
+<bean id="TransformSupport" class="edu.uidaho.junicon.support.transforms.TransformSupport">
+    <!--
+    #====
+    # Catalog of named property maps, used to configure transforms.
+    #====
+    -->
+    <property name="catalog">
+      <map>
+	<!--
+	#====
+	# Properties: indexOrigin.
+	# Properties delegate to JuniconInterpreter
+	#	and from there to CommandShell.
+	# CommandShell properties are set from directives, e.g.
+	#	@<index origin="0"/>
+	# The directives translate into dot-separated properties:
+	#	index.origin
+	# When an open directive, e.g. @<index origin="0">, is encountered,
+	#	it saves all properties prefixed with "index", clears them,
+	#	and then sets properties from the attributes.
+	# When a close directive, e.g. @</index> is encountered, it
+	#	clears all properties prefixed with "index", and restores them
+	#	from the saved values.
+	#====
+	# Index origin may be either 0 or 1.
+	# For index origin 1, applies Icon rules for slicing c[i..e], which
+	# extend up to but not including the end index,
+	# and ignore reversal if the begin is after the end.
+	# Otherwise, Groovy rules for slicing apply which includes the end index
+	# and reverses results if the begin is after the end.
+	# In both cases subscripting is from the end of the list if < 0.
+	#====
+	-->
+	<entry key="Properties" value="#{CommandShell.properties}"/>
+
+	<!--
+	#====
+	# Map symbols to operations over iterators using
+	#   OperatorOverIterators Unary/Binary, OperatorOverAtoms Unary/Binary,
+	#   OperatorAsGenerator, OperatorAsFunction, FunctionOverAtoms,
+	#   SymbolAsIterator, SymbolAsProperty, SymbolAsVariable, SymbolAsValue,
+	#   UndoFunction.
+	#
+	# Symbols include operators such as +, control constructs such as "if",
+	#   and keywords such as &amp;features.
+	#
+	# UndoFunction maps symbols, both operators and function calls,
+	#	to undo actions, and flags the symbol as undoable.
+	#
+	# Evaluation order is as follows.   If symbol is in:
+	#   OperatorAsGenerator, treats the symbol as a generator over its
+	#	atom arguments.  It is treated like a function by normalization
+	#	to flatten its arguments into atoms, and then translated to
+	#	an iterator constructor. Thus, the operator, first changed to a
+	#	synthetic function, is changed back to an iterator over atoms.
+	#	For example, !x is changed to !(x), its arguments normalized,
+	#	and finally !(x) is changed back to "new IconPromote(x)".
+	#   OperatorAsFunction, treats the symbol as a generator
+	#	function over values or atoms that returns an iterator.
+	#	The symbol is first translated into a function invocation.
+	#	Normalization then flattens the arguments into atoms and makes
+	#	iteration explicit, as it does for any function invocation.
+	#	For example, &features would be changed to &features(x),
+	#	normalized, and then mapped to:
+	#	new IconInvokeIterator({-> IconKeywords.features(x)}).
+	#   FunctionOverAtoms, treats the function name as over atoms.
+	#	Recommended to use with built-in functions only,
+	#	or with OperatorAsFunction symbols.
+	#   OperatorOverIterators Unary/Binary, treats the symbol as
+	#	a composition over iterators that returns an iterator. It
+	#	applies the operation directly to (x) or (x,y,...) respectively,
+	#	where looks in Unary if there is 1 operand and Binary otherwise.
+	#	Constructs such as "if x then y" would be changed to if(x,y).
+	#   OperatorOverAtoms Unary/Binary, treats the symbol as
+	#	an operator over atoms that returns an atom.
+	#	Promotes the operation to an iterator as:
+	#	new IconOperation(UnaryOperation).over(x) or
+	#		(BinaryOperation).over(x,y,...),
+	#	where looks in Unary if there is 1 operand and Binary otherwise.
+	#   SymbolAsIterator, treats &keyword as a field holding an iterator.
+	#	This is the default used for &keywords.
+	#   SymbolAsVariable, treats &keyword as an object reference to a
+	#	static field in a single class.
+	#   SymbolAsProperty, treats &keyword as a property with get() and set()
+	#	methods, i.e., an atom that implements IIconAtom.
+	#	For example: &subject => IconKeywords.subject
+	#   SymbolAsValue, treats &keyword as a literal value.
+	#   Default is:
+	#	if operation, new IconOperation(default operator).over(x,y,...)
+	#	if control construct, default is to capitalize: IconIf(x,y)
+	#	if keyword, new IconNullIterator()
+	#   where default operator is:
+	#		($x,$y)->$x $op $y
+	#	  or	($x) -> op $x
+	# Substitutes: $x, $y, $op for unique x and y and operator symbol.
+	# IconOperatorIterator assumes operator is left-associative, and
+	#	automatically translates variadic (x+y+z) to (x+y)+z
+	#	to decompose construct into binary operations.
+	#	Other OperatorOverIterators must handle variadic or fixed args.
+	# Augmented assignment uses only OperatorOverAtoms for its operator:
+	#	if not found there, uses default operator.
+	#	Assignment is right-associative and recursively decomposed by
+	#	grammar into only binary operations, so augments will be binary.
+	# EXAMPLE of OverAtoms:     IconOperators.plus, where
+	#	static plus = IconOperator.binary((x,y) -> x + y)
+	#		or IconOperator.unary((x) -> + x)
+	# EXAMPLE of OverIterators: new IconOperatorIterator(plus).over
+	#	which is then invoked with "...over(x,y)"
+	#====
+	-->
+	<entry key="OperatorOverIteratorsBinary">
+	  <props>
+		<!-- x | y	# Concatenation -->
+		<prop key="|">new IconConcat</prop>
+
+		<!-- x\limit	# Limit iteration -->
+		<prop key="\">new IconLimit</prop>
+
+		<!-- s?e	# String scanning -->
+		<prop key="?">new IconScan</prop>
+	  </props>
+	</entry>
+
+	<entry key="OperatorOverIteratorsUnary">
+	  <props>
+		<!-- |x		# Repeat until empty -->
+		<prop key="|">new IconRepeatUntilEmpty</prop>
+
+		<!-- <>x	# Wrap generator as singleton iterator -->
+		<!-- <prop key="&lt;>">new IconFirstClass</prop>
+		-->
+
+		<!-- [: x	# List comprehension -->
+		<prop key="[:">new IconListComprehension</prop>	
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# OperatorAsGenerator: used for operators over atoms that
+	#	return an iterator.  The operator is changed into
+	#	an iterator over atoms after normalizing out its arguments.
+	#	Treated like a function by normalization.
+	#====
+	-->
+	<entry key="OperatorAsGenerator">
+	  <props>
+		<prop key="!">new IconPromote</prop>	
+		<prop key="to">new IconToIterator</prop>	
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# OperatorAsFunction: used for operators over atoms or values that
+	#	return an iterator  The operator is changed into
+	#	a function call after normalizing out its arguments.
+	#	Treated like a function by normalization.
+	#	OverValues is default unless used with FunctionOverAtoms.
+	#====
+	-->
+	<entry key="OperatorAsFunction">
+	  <props>
+		<!-- !x	  # Lift collection or Java iterator to generator -->
+		<!-- f!x  # Handled in normalization => f(x.toArray()) -->
+		<!-- x to y by z  # Prototypical generator function -->
+		<!--
+		<prop key="to">IconOperators.to</prop>	
+		<prop key="!">IconOperators.promote</prop>	
+		-->
+
+		<!-- |<>| f(e)  # Data-parallel => |> parallel(<>f,<>e) -->
+		<prop key="|&lt;&gt;|">parallel</prop>	
+
+		<!-- &features    # No-arg &keyword -->
+		<prop key="&amp;features">IconKeywords.features</prop>	
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# FunctionOverAtoms: used for built-in functions over atoms.
+	#====
+	-->
+	<entry key="FunctionOverAtoms">
+	  <props>
+		<!--
+		<prop key="put">IconFunctions.putOverAtoms</prop>	
+		<prop key="ishift">IconFunctions.ishiftOverAtoms</prop>	
+		-->
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# OperatorOverAtoms: used for operations over atoms that return atoms.
+	#====
+	-->
+	<entry key="OperatorOverAtomsBinary">
+	  <props>
+		<prop key="+">IconOperators.plus</prop>
+		<prop key="-">IconOperators.minus</prop>
+		<prop key="*">IconOperators.times</prop>
+		<prop key="/">IconOperators.division</prop>
+		<prop key="%">IconOperators.remainder</prop>
+		<prop key="^">IconOperators.powerOf</prop>
+		<prop key="=">IconOperators.sameNumberAs</prop>
+
+		<prop key="==">IconOperators.sameStringAs</prop>
+		<prop key="===">IconOperators.sameValueAs</prop>
+		<prop key="~=">IconOperators.notSameNumberAs</prop>
+		<prop key="~==">IconOperators.notSameStringAs</prop>
+		<prop key="~===">IconOperators.notSameValueAs</prop>
+		<prop key="&lt;">IconOperators.lessThan</prop>
+		<prop key="&lt;=">IconOperators.lessThanOrEquals</prop>
+		<prop key=">">IconOperators.greaterThan</prop>
+		<prop key=">=">IconOperators.greaterThanOrEquals</prop>
+		<prop key=">>">IconOperators.stringGreaterThan</prop>
+		<prop key=">>=">IconOperators.stringGreaterThanOrEquals</prop>
+		<prop key="&lt;&lt;">IconOperators.stringLessThan</prop>
+		<prop key="&lt;&lt;=">IconOperators.stringLessThanOrEquals</prop>
+		<prop key="++">IconOperators.setUnion</prop>
+		<prop key="--">IconOperators.setDifference</prop>
+		<prop key="**">IconOperators.setIntersection</prop>
+		<prop key="||">IconOperators.stringConcat</prop>
+		<prop key="|||">IconOperators.listConcat </prop>
+
+		<prop key="@">IconOperators.activate</prop>
+		<prop key="@>">IconOperators.send</prop>
+		<prop key="@>>">IconOperators.blockingSend</prop>
+		<prop key="&lt;&lt;@">IconOperators.blockingReceive</prop>
+	  </props>
+	</entry>
+
+	<entry key="OperatorOverAtomsUnary">
+	  <props>
+		<prop key="+">IconOperators.plusUnary</prop>
+		<prop key="-">IconOperators.minusUnary</prop>
+		<prop key="=">IconOperators.tabMatch</prop>
+		<prop key="*">IconOperators.timesUnary</prop>
+		<prop key="?">IconOperators.questionMarkUnary</prop>
+		<prop key="\">IconOperators.failIfNull</prop>
+		<prop key="/">IconOperators.failIfNonNull</prop>
+		<prop key=".">IconOperators.dereference</prop>
+		<prop key="~">IconOperators.csetComplement</prop>
+		<prop key="^">IconOperators.refresh</prop>
+		<prop key="@">IconOperators.activate</prop>
+		<prop key="&lt;@">IconOperators.receiveUnary</prop>
+		<prop key="&lt;&lt;@">IconOperators.blockingReceiveUnary</prop>
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# UndoFunction: maps symbol to an undo factory and marks it as undoable.
+	#====
+	-->
+	<entry key="UndoFunction">
+	  <props>
+	    <prop key="tab">IconScan.createUndo()</prop>
+	    <prop key="move">IconScan.createUndo()</prop>
+	    <prop key="&lt;-"></prop>
+	    <prop key="&lt;-&gt;"></prop>
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# SymbolAsValue: maps symbol such as &null into a literal value.
+	#	Literal values won't be lifted to an interator in normalization
+	#	when they are function arguments.
+	#====
+	-->
+	<entry key="SymbolAsValue">
+	  <props>
+	    <!-- &null		# No-arg &keyword -->
+	    <prop key="&amp;null">null</prop>
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# SymbolAsVariable: maps symbol such as &digits into an object reference
+	#	For example, &subject => IconKeywords.subject
+	#	The simple object reference is then treated as an assignable 
+	#	variable by the transforms.
+	#====
+	-->
+	<entry key="SymbolAsVariable">
+	  <props>
+	    <!-- &digits	# No-arg &keyword -->
+	    <prop key="&amp;digits">IconKeywords.digits</prop>
+	    <prop key="&amp;cset">IconKeywords.cset</prop>
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# SymbolAsProperty: maps symbol such as &subject into a property
+	#	with get() and set() methods, i.e., an IIconAtom.
+	#====
+	-->
+	<entry key="SymbolAsProperty">
+	  <props>
+	    <!-- &subject	# No-arg &keyword -->
+	    <prop key="&amp;subject">IconKeywords.subject</prop>
+	    <prop key="&amp;pos">IconKeywords.pos</prop>
+	    <prop key="&amp;current">IconKeywords.current</prop>
+	    <prop key="&amp;source">IconKeywords.source</prop>
+	    <prop key="&amp;main">IconKeywords.main</prop>
+	    <prop key="&amp;time">IconKeywords.time</prop>
+	  </props>
+	</entry>
+
+	<!--
+	#====
+	# SymbolAsIterator: maps symbol such as &fail into an iterator.
+	#	Symbols defined this way must map to a new or method invocation
+	#	that returns a mutable iterator.
+	#====
+	-->
+	<entry key="SymbolAsIterator">
+	  <props>
+	    <!-- &fail	# No-arg &keyword -->
+	    <prop key="&amp;fail">new IconFail()</prop>
+	  </props>
+	</entry>
+
+      </map>
+    </property>
+</bean>
+
+<!-- #===============================================
+     # Script engine handler for scripting substrates
+     #=============================================== -->
+<bean id="DefaultSubstrate" class="edu.uidaho.junicon.interpreter.interpreter.AbstractSubstrate">
+    <property name="parent" ref="JuniconInterpreter"/>
+    <property name="logger" ref="DefaultLogger"/>
+    <property name="quietScriptExceptions" value="false"/>
+    <!--
+    <property name="defaultLineSeparator" value="\n"/>
+    -->
+    <property name="scriptEngineManager">
+	<bean class="javax.script.ScriptEngineManager">
+	</bean>
+    </property>
+    <property name="defaultScriptExtension" value="groovy"/>
+    <property name="defaultScriptEngine">
+	<bean class="edu.uidaho.junicon.substrates.groovy.groovyshell.GroovyScriptEngineImports">
+	</bean>
+    </property>
+</bean>
+
+</beans>
+
+<!-- END OF FILE -->
